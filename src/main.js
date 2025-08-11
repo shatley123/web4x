@@ -15,7 +15,11 @@ const ctx = canvas.getContext('2d');
 canvas.width = VIEW_WIDTH * TILE_SIZE;
 canvas.height = VIEW_HEIGHT * TILE_SIZE;
 
-const ui = document.getElementById('unit-info');
+const info = document.getElementById('info');
+const endTurnBtn = document.getElementById('end-turn');
+const nextUnitBtn = document.getElementById('next-unit');
+const createWarriorBtn = document.getElementById('create-warrior');
+const foundCityBtn = document.getElementById('found-city');
 
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 const units = [
@@ -120,6 +124,34 @@ window.addEventListener('keydown', (e) => {
       return;
   }
   if (selected >= units.length) selected = units.length - 1;
+});
+
+endTurnBtn.addEventListener('click', () => {
+  endTurn(map, units);
+  turn++;
+});
+
+nextUnitBtn.addEventListener('click', () => {
+  selected = (selected + 1) % units.length;
+  updateUI();
+});
+
+createWarriorBtn.addEventListener('click', () => {
+  const unit = units[selected];
+  units.push(createUnit('warrior', unit.x, unit.y, 'player'));
+  updateUI();
+});
+
+foundCityBtn.addEventListener('click', () => {
+  const unit = units[selected];
+  if (unit.type === 'settler') {
+    map[unit.y][unit.x].city = createCity(unit.owner);
+    units.splice(selected, 1);
+    const defender = createUnit('warrior', unit.x, unit.y, unit.owner);
+    units.push(defender);
+    selected = units.length - 1;
+    updateUI();
+  }
 });
 
 function handleAction(res) {
@@ -320,7 +352,8 @@ function drawUnit(unit, x, y) {
 
 function updateUI() {
   const unit = units[selected];
-  ui.textContent = `Turn ${turn} - Selected: ${unit.type} (${unit.owner})`;
+  const tile = map[unit.y][unit.x];
+  info.innerHTML = `Turn ${turn}<br/>Selected: ${unit.type} (${unit.owner})<br/>Moves: ${unit.moves}<br/>Tile: ${tile.type}`;
 }
 
 requestAnimationFrame(draw);
