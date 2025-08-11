@@ -1,9 +1,5 @@
-
 // available terrain types
 export const TILE_TYPES = ["water", "grass", "mountain", "desert", "forest"];
-
-export const TILE_TYPES = ["water", "grass", "mountain"]; // available terrain types
-
 
 /**
  * Generate a map of given width and height.
@@ -31,6 +27,4 @@ function randomTile() {
   if (r < 0.5) return "forest";   // 20% forest
   if (r < 0.6) return "desert";   // 10% desert
   return "grass";                 // remaining 40% grassland
-  if (r < 0.3) return "water";    // 20% water
-  return "grass";                 // rest grassland
 }
