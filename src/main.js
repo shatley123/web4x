@@ -28,6 +28,8 @@ const units = [
 ];
 let selected = 0;
 let turn = 1;
+let cameraX = 0;
+let cameraY = 0;
 
 // spawn a few barbarian enemies
 for (let i = 0; i < 5; i++) {
@@ -40,6 +42,24 @@ for (let i = 0; i < 5; i++) {
 }
 
 draw();
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const tx = Math.floor((e.clientX - rect.left) / TILE_SIZE) + cameraX;
+  const ty = Math.floor((e.clientY - rect.top) / TILE_SIZE) + cameraY;
+  const clicked = units.findIndex((u) => u.x === tx && u.y === ty);
+  if (clicked !== -1) {
+    selected = clicked;
+  } else {
+    const unit = units[selected];
+    const dx = tx - unit.x;
+    const dy = ty - unit.y;
+    if (Math.abs(dx) + Math.abs(dy) === 1) {
+      moveUnit(unit, dx, dy, map, units);
+    }
+  }
+  draw();
+});
 
 window.addEventListener('keydown', (e) => {
   const unit = units[selected];
@@ -89,19 +109,19 @@ function draw() {
   updateVisibility();
 
   const focus = units[selected];
-  const camX = Math.max(
+  cameraX = Math.max(
     0,
     Math.min(focus.x - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH)
   );
-  const camY = Math.max(
+  cameraY = Math.max(
     0,
     Math.min(focus.y - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT)
   );
 
   for (let y = 0; y < VIEW_HEIGHT; y++) {
     for (let x = 0; x < VIEW_WIDTH; x++) {
-      const mapX = camX + x;
-      const mapY = camY + y;
+      const mapX = cameraX + x;
+      const mapY = cameraY + y;
       const tile = map[mapY][mapX];
       const posX = x * TILE_SIZE;
       const posY = y * TILE_SIZE;
@@ -125,8 +145,8 @@ function draw() {
   for (const u of units) {
     const tile = map[u.y][u.x];
     if (!tile.visible) continue;
-    const posX = (u.x - camX) * TILE_SIZE;
-    const posY = (u.y - camY) * TILE_SIZE;
+    const posX = (u.x - cameraX) * TILE_SIZE;
+    const posY = (u.y - cameraY) * TILE_SIZE;
     drawUnit(u, posX, posY);
     if (u === units[selected]) {
       ctx.strokeStyle = '#ffffff';
