@@ -1,5 +1,7 @@
 import { generateMap } from './map.js';
 import { createUnit, moveUnit } from './unit.js';
+import { createCity } from './city.js';
+import { endTurn } from './game.js';
 
 const TILE_SIZE = 32;
 const WORLD_WIDTH = 100;
@@ -25,6 +27,7 @@ const units = [
   )
 ];
 let selected = 0;
+let turn = 1;
 
 // spawn a few barbarian enemies
 for (let i = 0; i < 5; i++) {
@@ -54,10 +57,21 @@ window.addEventListener('keydown', (e) => {
       moveUnit(unit, 1, 0, map, units);
       break;
     case 'c': // found city
-      map[unit.y][unit.x].city = true;
+      if (unit.type === 'settler') {
+        map[unit.y][unit.x].city = createCity(unit.owner);
+        units.splice(selected, 1);
+        const defender = createUnit('warrior', unit.x, unit.y, unit.owner);
+        units.push(defender);
+        selected = units.length - 1;
+      }
       break;
     case 'u': // create warrior
       units.push(createUnit('warrior', unit.x, unit.y, 'player'));
+      break;
+    case 'n':
+    case 'Enter':
+      endTurn(map, units);
+      turn++;
       break;
     case 'Tab':
       selected = (selected + 1) % units.length;
@@ -241,5 +255,5 @@ function drawUnit(unit, x, y) {
 
 function updateUI() {
   const unit = units[selected];
-  ui.textContent = `Selected: ${unit.type} (${unit.owner})`;
+  ui.textContent = `Turn ${turn} - Selected: ${unit.type} (${unit.owner})`;
 }

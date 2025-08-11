@@ -5,10 +5,11 @@ export const UNIT_TYPES = {
 };
 
 export function createUnit(type, x, y, owner) {
-  return { type, x, y, owner };
+  return { type, x, y, owner, moves: 1 };
 }
 
 export function moveUnit(unit, dx, dy, map, units) {
+  if (unit.moves <= 0) return false;
   const nx = unit.x + dx;
   const ny = unit.y + dy;
   if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) return false;
@@ -22,12 +23,15 @@ export function moveUnit(unit, dx, dy, map, units) {
     if (units.includes(unit)) {
       unit.x = nx;
       unit.y = ny;
+      unit.moves -= 1;
+      return true;
     }
-    return true;
+    return false;
   }
 
   unit.x = nx;
   unit.y = ny;
+  unit.moves -= 1;
   return true;
 }
 

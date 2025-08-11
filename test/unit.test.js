@@ -15,6 +15,7 @@ const units = [
 moveUnit(units[0], 1, 0, map, units);
 assert.strictEqual(units.length, 1, 'defender removed after combat');
 assert.strictEqual(units[0].x, 1, 'warrior moved into tile');
+assert.strictEqual(units[0].moves, 0, 'movement consumed');
 assert.strictEqual(units[0].type, 'warrior', 'warrior survives');
 
 // movement blocked by water

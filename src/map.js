@@ -13,7 +13,7 @@ export function generateMap(width, height) {
   for (let y = 0; y < height; y++) {
     const row = [];
     for (let x = 0; x < width; x++) {
-      row.push({ type: randomTile(), city: false, seen: false, visible: false });
+      row.push({ type: randomTile(), city: null, seen: false, visible: false });
     }
     map.push(row);
   }
