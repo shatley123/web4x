@@ -1,9 +1,10 @@
 // available terrain types
 export const TILE_TYPES = ["water", "grass", "mountain", "desert", "forest"];
+export const RESOURCE_TYPES = ["wheat", "iron"];
 
 /**
  * Generate a map of given width and height.
- * Each tile is an object { type: string, city: boolean, seen: boolean, visible: boolean }
+ * Each tile is an object { type: string, resource: string|null, city: boolean, seen: boolean, visible: boolean, claimedBy: string|null }
  * @param {number} width
  * @param {number} height
  * @returns {Array<Array<{type:string, city:boolean}>>}
@@ -13,7 +14,15 @@ export function generateMap(width, height) {
   for (let y = 0; y < height; y++) {
     const row = [];
     for (let x = 0; x < width; x++) {
-      row.push({ type: randomTile(), city: null, seen: false, visible: false });
+      const type = randomTile();
+      row.push({
+        type,
+        resource: randomResource(type),
+        city: null,
+        seen: false,
+        visible: false,
+        claimedBy: null
+      });
     }
     map.push(row);
   }
@@ -27,4 +36,12 @@ function randomTile() {
   if (r < 0.5) return "forest";   // 20% forest
   if (r < 0.6) return "desert";   // 10% desert
   return "grass";                 // remaining 40% grassland
+}
+
+function randomResource(type) {
+  if (type === "water" || type === "mountain") return null;
+  const r = Math.random();
+  if (r < 0.05) return "wheat";
+  if (r < 0.1) return "iron";
+  return null;
 }

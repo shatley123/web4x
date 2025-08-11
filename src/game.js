@@ -1,7 +1,7 @@
 import { moveUnit } from './unit.js';
 import { processCity } from './city.js';
 
-export function endTurn(map, units) {
+export function endTurn(map, units, resources) {
   // Reset movement and move barbarians
   for (const unit of [...units]) {
     unit.moves = 1;
@@ -22,7 +22,7 @@ export function endTurn(map, units) {
     for (let x = 0; x < map[0].length; x++) {
       const tile = map[y][x];
       if (tile.city) {
-        processCity(tile.city, x, y, map, units);
+        processCity(tile.city, x, y, map, units, resources);
       }
     }
   }

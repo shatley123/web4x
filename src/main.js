@@ -20,6 +20,11 @@ const endTurnBtn = document.getElementById('end-turn');
 const nextUnitBtn = document.getElementById('next-unit');
 const createWarriorBtn = document.getElementById('create-warrior');
 const foundCityBtn = document.getElementById('found-city');
+const resourcesDiv = document.getElementById('resources');
+const civsDiv = document.getElementById('civs');
+const cityPanel = document.getElementById('city-panel');
+const buildSelect = document.getElementById('build-select');
+const setBuildBtn = document.getElementById('set-build');
 
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 const units = [
@@ -30,7 +35,9 @@ const units = [
     'player'
   )
 ];
+const resources = { player: {}, barbarian: {} };
 let selected = 0;
+let selectedCity = null;
 let turn = 1;
 let cameraX = 0;
 let cameraY = 0;
@@ -70,22 +77,42 @@ canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
   const tx = Math.floor((e.clientX - rect.left) / TILE_SIZE) + cameraX;
   const ty = Math.floor((e.clientY - rect.top) / TILE_SIZE) + cameraY;
-  const clicked = units.findIndex((u) => u.x === tx && u.y === ty);
+  const clicked = units.findIndex(
+    (u) => u.x === tx && u.y === ty && u.owner === 'player'
+  );
   if (clicked !== -1) {
     selected = clicked;
-  } else {
+    selectedCity = null;
+  } else if (map[ty][tx].city && map[ty][tx].city.owner === 'player') {
+    selectedCity = map[ty][tx].city;
+    selectedCity.x = tx;
+    selectedCity.y = ty;
+  } else if (!selectedCity) {
     const unit = units[selected];
-    const dx = tx - unit.x;
-    const dy = ty - unit.y;
-    if (Math.abs(dx) + Math.abs(dy) === 1) {
-      const res = moveUnit(unit, dx, dy, map, units);
-      handleAction(res);
+    if (unit && unit.owner === 'player') {
+      const dx = tx - unit.x;
+      const dy = ty - unit.y;
+      if (Math.abs(dx) + Math.abs(dy) === 1) {
+        const res = moveUnit(unit, dx, dy, map, units);
+        handleAction(res);
+      }
     }
   }
 });
 
 window.addEventListener('keydown', (e) => {
+  if (selectedCity) {
+    if (e.key === 'n' || e.key === 'Enter') {
+      endTurn(map, units, resources);
+      turn++;
+    } else if (e.key === 'Tab') {
+      nextPlayerUnit();
+      e.preventDefault();
+    }
+    return;
+  }
   const unit = units[selected];
+  if (!unit || unit.owner !== 'player') return;
   switch (e.key) {
     case 'ArrowUp':
       handleAction(moveUnit(unit, 0, -1, map, units));
@@ -105,7 +132,7 @@ window.addEventListener('keydown', (e) => {
         units.splice(selected, 1);
         const defender = createUnit('warrior', unit.x, unit.y, unit.owner);
         units.push(defender);
-        selected = units.length - 1;
+        selected = units.findIndex((u) => u.owner === 'player');
       }
       break;
     case 'u': // create warrior
@@ -113,43 +140,54 @@ window.addEventListener('keydown', (e) => {
       break;
     case 'n':
     case 'Enter':
-      endTurn(map, units);
+      endTurn(map, units, resources);
       turn++;
       break;
     case 'Tab':
-      selected = (selected + 1) % units.length;
+      nextPlayerUnit();
       e.preventDefault();
       break;
     default:
       return;
   }
-  if (selected >= units.length) selected = units.length - 1;
+  if (selected >= units.length || units[selected].owner !== 'player') {
+    nextPlayerUnit();
+  }
 });
 
 endTurnBtn.addEventListener('click', () => {
-  endTurn(map, units);
+  endTurn(map, units, resources);
   turn++;
 });
 
 nextUnitBtn.addEventListener('click', () => {
-  selected = (selected + 1) % units.length;
+  nextPlayerUnit();
   updateUI();
 });
 
 createWarriorBtn.addEventListener('click', () => {
   const unit = units[selected];
-  units.push(createUnit('warrior', unit.x, unit.y, 'player'));
-  updateUI();
+  if (unit && unit.owner === 'player') {
+    units.push(createUnit('warrior', unit.x, unit.y, 'player'));
+    updateUI();
+  }
 });
 
 foundCityBtn.addEventListener('click', () => {
   const unit = units[selected];
-  if (unit.type === 'settler') {
+  if (unit && unit.owner === 'player' && unit.type === 'settler') {
     map[unit.y][unit.x].city = createCity(unit.owner);
     units.splice(selected, 1);
     const defender = createUnit('warrior', unit.x, unit.y, unit.owner);
     units.push(defender);
-    selected = units.length - 1;
+    selected = units.findIndex((u) => u.owner === 'player');
+    updateUI();
+  }
+});
+
+setBuildBtn.addEventListener('click', () => {
+  if (selectedCity) {
+    selectedCity.build = buildSelect.value;
     updateUI();
   }
 });
@@ -162,6 +200,18 @@ function handleAction(res) {
   }
 }
 
+function nextPlayerUnit() {
+  const indices = units.map((u, i) => i).filter((i) => units[i].owner === 'player');
+  if (indices.length === 0) {
+    selected = -1;
+    return;
+  }
+  const pos = indices.indexOf(selected);
+  const next = indices[(pos + 1) % indices.length];
+  selected = next;
+  selectedCity = null;
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   updateVisibility();
@@ -171,7 +221,7 @@ function draw() {
     u.fy += (u.y - u.fy) * 0.2;
   }
 
-  const focus = units[selected];
+  const focus = selectedCity ? { fx: selectedCity.x, fy: selectedCity.y } : units[selected] || { fx: 0, fy: 0 };
   cameraX = Math.max(
     0,
     Math.min(Math.floor(focus.fx) - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH)
@@ -201,6 +251,7 @@ function draw() {
       const posY = y * TILE_SIZE;
       if (tile.seen) {
         drawTile(tile.type, posX, posY);
+        if (tile.resource) drawResource(tile.resource, posX, posY);
         if (!tile.visible) {
           ctx.fillStyle = 'rgba(0,0,0,0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
@@ -222,7 +273,7 @@ function draw() {
     const posX = (u.fx - cameraX) * TILE_SIZE;
     const posY = (u.fy - cameraY) * TILE_SIZE;
     drawUnit(u, posX, posY);
-    if (u === units[selected]) {
+    if (!selectedCity && u === units[selected]) {
       ctx.strokeStyle = '#ffffff';
       ctx.strokeRect(posX + 2, posY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
     }
@@ -325,6 +376,26 @@ function drawTile(type, x, y) {
   }
 }
 
+function drawResource(res, x, y) {
+  switch (res) {
+    case 'wheat':
+      ctx.fillStyle = '#fff200';
+      ctx.beginPath();
+      ctx.arc(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 6, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'iron':
+      ctx.fillStyle = '#555555';
+      ctx.fillRect(
+        x + TILE_SIZE / 3,
+        y + TILE_SIZE / 3,
+        TILE_SIZE / 3,
+        TILE_SIZE / 3
+      );
+      break;
+  }
+}
+
 function drawUnit(unit, x, y) {
   switch (unit.type) {
     case 'settler':
@@ -350,10 +421,36 @@ function drawUnit(unit, x, y) {
   }
 }
 
+function formatResources(obj) {
+  return Object.entries(obj)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(' ') || 'none';
+}
+
 function updateUI() {
-  const unit = units[selected];
-  const tile = map[unit.y][unit.x];
-  info.innerHTML = `Turn ${turn}<br/>Selected: ${unit.type} (${unit.owner})<br/>Moves: ${unit.moves}<br/>Tile: ${tile.type}`;
+  if (selectedCity) {
+    info.innerHTML = `Turn ${turn}<br/>City (${selectedCity.owner})<br/>Production: ${selectedCity.production}<br/>Building: ${selectedCity.build}`;
+    cityPanel.style.display = 'block';
+    buildSelect.value = selectedCity.build || 'warrior';
+  } else {
+    const unit = units[selected];
+    if (unit) {
+      const tile = map[unit.y][unit.x];
+      info.innerHTML = `Turn ${turn}<br/>Selected: ${unit.type} (${unit.owner})<br/>Moves: ${unit.moves}<br/>Tile: ${tile.type}`;
+    } else {
+      info.innerHTML = `Turn ${turn}`;
+    }
+    cityPanel.style.display = 'none';
+  }
+  resourcesDiv.textContent = 'Resources: ' + formatResources(resources.player);
+  const civs = new Set();
+  for (const u of units) civs.add(u.owner);
+  for (const row of map) {
+    for (const tile of row) {
+      if (tile.city) civs.add(tile.city.owner);
+    }
+  }
+  civsDiv.textContent = 'Civs: ' + Array.from(civs).join(', ');
 }
 
 requestAnimationFrame(draw);
