@@ -5,7 +5,7 @@ export const UNIT_TYPES = {
 };
 
 export function createUnit(type, x, y, owner) {
-  return { type, x, y, owner, moves: 1 };
+  return { type, x, y, owner, moves: 1, fx: x, fy: y };
 }
 
 export function moveUnit(unit, dx, dy, map, units) {
@@ -21,18 +21,22 @@ export function moveUnit(unit, dx, dy, map, units) {
     if (target.owner === unit.owner) return false;
     resolveCombat(unit, target, units);
     if (units.includes(unit)) {
+      unit.fx = unit.x;
+      unit.fy = unit.y;
       unit.x = nx;
       unit.y = ny;
       unit.moves -= 1;
-      return true;
+      return 'attack';
     }
     return false;
   }
 
+  unit.fx = unit.x;
+  unit.fy = unit.y;
   unit.x = nx;
   unit.y = ny;
   unit.moves -= 1;
-  return true;
+  return 'move';
 }
 
 export function resolveCombat(attacker, defender, units) {

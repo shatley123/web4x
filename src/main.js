@@ -30,6 +30,27 @@ let selected = 0;
 let turn = 1;
 let cameraX = 0;
 let cameraY = 0;
+let shake = 0;
+
+let audioCtx;
+function playTone(freq, duration) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.value = freq;
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playMoveSound() {
+  playTone(440, 0.1);
+}
+
+function playAttackSound() {
+  playTone(220, 0.2);
+}
 
 // spawn a few barbarian enemies
 for (let i = 0; i < 5; i++) {
@@ -40,8 +61,6 @@ for (let i = 0; i < 5; i++) {
   } while (map[y][x].type === 'water' || map[y][x].type === 'mountain');
   units.push(createUnit('barbarian', x, y, 'barbarian'));
 }
-
-draw();
 
 canvas.addEventListener('click', (e) => {
   const rect = canvas.getBoundingClientRect();
@@ -55,26 +74,26 @@ canvas.addEventListener('click', (e) => {
     const dx = tx - unit.x;
     const dy = ty - unit.y;
     if (Math.abs(dx) + Math.abs(dy) === 1) {
-      moveUnit(unit, dx, dy, map, units);
+      const res = moveUnit(unit, dx, dy, map, units);
+      handleAction(res);
     }
   }
-  draw();
 });
 
 window.addEventListener('keydown', (e) => {
   const unit = units[selected];
   switch (e.key) {
     case 'ArrowUp':
-      moveUnit(unit, 0, -1, map, units);
+      handleAction(moveUnit(unit, 0, -1, map, units));
       break;
     case 'ArrowDown':
-      moveUnit(unit, 0, 1, map, units);
+      handleAction(moveUnit(unit, 0, 1, map, units));
       break;
     case 'ArrowLeft':
-      moveUnit(unit, -1, 0, map, units);
+      handleAction(moveUnit(unit, -1, 0, map, units));
       break;
     case 'ArrowRight':
-      moveUnit(unit, 1, 0, map, units);
+      handleAction(moveUnit(unit, 1, 0, map, units));
       break;
     case 'c': // found city
       if (unit.type === 'settler') {
@@ -101,22 +120,45 @@ window.addEventListener('keydown', (e) => {
       return;
   }
   if (selected >= units.length) selected = units.length - 1;
-  draw();
 });
+
+function handleAction(res) {
+  if (res === 'move') playMoveSound();
+  else if (res === 'attack') {
+    playAttackSound();
+    shake = 5;
+  }
+}
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   updateVisibility();
 
+  for (const u of units) {
+    u.fx += (u.x - u.fx) * 0.2;
+    u.fy += (u.y - u.fy) * 0.2;
+  }
+
   const focus = units[selected];
   cameraX = Math.max(
     0,
-    Math.min(focus.x - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH)
+    Math.min(Math.floor(focus.fx) - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH)
   );
   cameraY = Math.max(
     0,
-    Math.min(focus.y - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT)
+    Math.min(Math.floor(focus.fy) - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT)
   );
+
+  let offsetX = 0;
+  let offsetY = 0;
+  if (shake > 0) {
+    offsetX = (Math.random() * 2 - 1) * shake;
+    offsetY = (Math.random() * 2 - 1) * shake;
+    shake *= 0.9;
+  }
+
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
 
   for (let y = 0; y < VIEW_HEIGHT; y++) {
     for (let x = 0; x < VIEW_WIDTH; x++) {
@@ -145,8 +187,8 @@ function draw() {
   for (const u of units) {
     const tile = map[u.y][u.x];
     if (!tile.visible) continue;
-    const posX = (u.x - cameraX) * TILE_SIZE;
-    const posY = (u.y - cameraY) * TILE_SIZE;
+    const posX = (u.fx - cameraX) * TILE_SIZE;
+    const posY = (u.fy - cameraY) * TILE_SIZE;
     drawUnit(u, posX, posY);
     if (u === units[selected]) {
       ctx.strokeStyle = '#ffffff';
@@ -154,7 +196,10 @@ function draw() {
     }
   }
 
+  ctx.restore();
+
   updateUI();
+  requestAnimationFrame(draw);
 }
 
 function updateVisibility() {
@@ -277,3 +322,5 @@ function updateUI() {
   const unit = units[selected];
   ui.textContent = `Turn ${turn} - Selected: ${unit.type} (${unit.owner})`;
 }
+
+requestAnimationFrame(draw);
