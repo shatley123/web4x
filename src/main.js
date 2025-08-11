@@ -63,6 +63,9 @@ function draw() {
         if (tile.city) {
           ctx.fillStyle = '#ff0000';
           ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+          ctx.strokeStyle = '#ffff00';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
         }
       } else {
         ctx.fillStyle = '#000000';
@@ -70,6 +73,8 @@ function draw() {
       }
     }
   }
+
+  highlightMoves(camX, camY);
 
   // draw player relative to camera
   ctx.fillStyle = '#ffff00';
@@ -98,6 +103,27 @@ function updateVisibility() {
         const tile = map[ny][nx];
         tile.visible = true;
         tile.seen = true;
+      }
+    }
+  }
+}
+
+function highlightMoves(camX, camY) {
+  const moves = [
+    { dx: 1, dy: 0 },
+    { dx: -1, dy: 0 },
+    { dx: 0, dy: 1 },
+    { dx: 0, dy: -1 },
+  ];
+  ctx.fillStyle = 'rgba(255,255,0,0.3)';
+  for (const { dx, dy } of moves) {
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < WORLD_HEIGHT) {
+      const screenX = (nx - camX) * TILE_SIZE;
+      const screenY = (ny - camY) * TILE_SIZE;
+      if (screenX >= 0 && screenX < canvas.width && screenY >= 0 && screenY < canvas.height) {
+        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
       }
     }
   }
