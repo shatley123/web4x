@@ -1,0 +1,9 @@
+{
+  "name": "web4x",
+  "version": "0.1.0",
+  "description": "Simple 4X web game skeleton inspired by Civilization 1",
+  "type": "module",
+  "scripts": {
+    "test": "node test/map.test.js"
+  }
+}
