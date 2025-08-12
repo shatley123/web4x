@@ -9,6 +9,7 @@ const WORLD_HEIGHT = 100;
 const VIEW_WIDTH = 20;
 const VIEW_HEIGHT = 15;
 const VISION_RADIUS = 2;
+const PAN_SPEED = 0.2;
 
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
@@ -47,6 +48,7 @@ let panY = 0;
 let isPanning = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
+let pressedKeys = new Set();
 
 let audioCtx;
 function playTone(freq, duration) {
@@ -134,23 +136,10 @@ window.addEventListener('mouseup', () => {
 
 window.addEventListener('keydown', (e) => {
   const key = e.key.toLowerCase();
-  switch (key) {
-    case 'w':
-      panY -= 1;
-      e.preventDefault();
-      return;
-    case 's':
-      panY += 1;
-      e.preventDefault();
-      return;
-    case 'a':
-      panX -= 1;
-      e.preventDefault();
-      return;
-    case 'd':
-      panX += 1;
-      e.preventDefault();
-      return;
+  if (['w', 'a', 's', 'd'].includes(key)) {
+    pressedKeys.add(key);
+    e.preventDefault();
+    return;
   }
   if (selectedCity) {
     if (key === 'n' || e.key === 'Enter') {
@@ -205,6 +194,14 @@ window.addEventListener('keydown', (e) => {
   if (selected >= units.length || units[selected].owner !== 'player') {
     nextPlayerUnit();
   }
+  });
+
+window.addEventListener('keyup', (e) => {
+  const key = e.key.toLowerCase();
+  if (['w', 'a', 's', 'd'].includes(key)) {
+    pressedKeys.delete(key);
+    return;
+  }
 });
 
 endTurnBtn.addEventListener('click', () => {
@@ -256,6 +253,7 @@ function handleAction(res) {
 function resetPan() {
   panX = 0;
   panY = 0;
+  pressedKeys.clear();
 }
 
 function nextPlayerUnit() {
@@ -320,6 +318,11 @@ function draw() {
     u.fy += (u.y - u.fy) * 0.2;
   }
 
+  if (pressedKeys.has('w')) panY -= PAN_SPEED;
+  if (pressedKeys.has('s')) panY += PAN_SPEED;
+  if (pressedKeys.has('a')) panX -= PAN_SPEED;
+  if (pressedKeys.has('d')) panX += PAN_SPEED;
+
   const focus = selectedCity ? { fx: selectedCity.x, fy: selectedCity.y } : units[selected] || { fx: 0, fy: 0 };
   let targetX = Math.max(
     0,
@@ -333,14 +336,6 @@ function draw() {
   cameraY = Math.max(0, Math.min(targetY + Math.round(panY), WORLD_HEIGHT - VIEW_HEIGHT));
   panX = cameraX - targetX;
   panY = cameraY - targetY;
-
-  let moveSet = new Set();
-  const unit = units[selected];
-  if (!selectedCity && unit && unit.owner === 'player' && unit.moves > 0) {
-    moveSet = new Set(
-      getAvailableMoves(unit, map, units).map((p) => `${p.x},${p.y}`)
-    );
-  }
 
   let moveSet = new Set();
   const unit = units[selected];
