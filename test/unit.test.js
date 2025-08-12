@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { createUnit, moveUnit, findPath, processUnitQueue } from '../src/unit.js';
+import { createUnit, moveUnit, findPath, processUnitQueue, attackUnit } from '../src/unit.js';
 
 const map = [
   [{ type: 'grass' }, { type: 'grass' }],
@@ -55,11 +55,24 @@ const archer = createUnit('archer', 0, 0, 'player');
 assert.strictEqual(archer.speed, 2, 'archer has expected speed');
 assert.strictEqual(archer.moves, 2, 'archer starts with full moves');
 assert.strictEqual(archer.health, 10, 'archer starts with full health');
+assert.strictEqual(archer.range, 2, 'archer has range 2');
 
 const horseman = createUnit('horseman', 0, 0, 'player');
 assert.strictEqual(horseman.speed, 4, 'horseman has increased speed');
 assert.strictEqual(horseman.moves, 4, 'horseman starts with full moves');
 assert.strictEqual(horseman.health, 10, 'horseman starts with full health');
+
+// archer ranged attack
+const rangeUnits = [
+  createUnit('archer', 0, 0, 'player'),
+  createUnit('barbarian', 2, 0, 'barbarian'),
+];
+const rangedRes = attackUnit(rangeUnits[0], rangeUnits[1], rangeUnits);
+assert.strictEqual(rangedRes, 'attack', 'ranged attack returns attack result');
+assert.strictEqual(rangeUnits[1].health, 8, 'target takes damage from ranged attack');
+assert.strictEqual(rangeUnits[0].health, 10, 'archer takes no damage at range');
+assert.strictEqual(rangeUnits[0].moves, 0, 'archer movement consumed on ranged attack');
+assert.strictEqual(rangeUnits.length, 2, 'both units remain after ranged attack');
 
 // ship movement
 const waterMap = [

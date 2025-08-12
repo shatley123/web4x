@@ -1,5 +1,5 @@
 import { generateMap } from './map.js';
-import { createUnit, moveUnit, TILE_MOVEMENT_COST, findPath, processUnitQueue } from './unit.js';
+import { createUnit, moveUnit, TILE_MOVEMENT_COST, findPath, processUnitQueue, attackUnit } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
 import { updateBuildSelect } from './ui.js';
@@ -387,20 +387,25 @@ attackBtn.addEventListener('click', () => {
   const unit = units[selected];
   if (unit && unit.owner === 'player') {
     unit.queue = [];
-    const dirs = [
-      [0, -1],
-      [0, 1],
-      [-1, 0],
-      [1, 0],
-    ];
-    for (const [dx, dy] of dirs) {
-      const target = units.find(
-        (u) => u.x === unit.x + dx && u.y === unit.y + dy && u.owner !== unit.owner
-      );
-      if (target) {
-        const res = moveUnit(unit, dx, dy, map, units);
-        handleAction(res);
-        break;
+    const range = unit.range || 1;
+    let acted = false;
+    for (let dy = -range; dy <= range && !acted; dy++) {
+      for (let dx = -range; dx <= range && !acted; dx++) {
+        if (dx === 0 && dy === 0) continue;
+        if (Math.abs(dx) + Math.abs(dy) > range) continue;
+        const target = units.find(
+          (u) => u.x === unit.x + dx && u.y === unit.y + dy && u.owner !== unit.owner
+        );
+        if (target) {
+          let res;
+          if (Math.abs(dx) + Math.abs(dy) === 1) {
+            res = moveUnit(unit, dx, dy, map, units);
+          } else {
+            res = attackUnit(unit, target, units);
+          }
+          handleAction(res);
+          acted = true;
+        }
       }
     }
     updateUI();
