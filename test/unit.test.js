@@ -39,4 +39,13 @@ const scout = createUnit('scout', 0, 0, 'player');
 assert.strictEqual(scout.speed, 3, 'scout has increased speed');
 assert.strictEqual(scout.moves, 3, 'scout starts with full moves');
 
+// new unit properties
+const archer = createUnit('archer', 0, 0, 'player');
+assert.strictEqual(archer.speed, 2, 'archer has expected speed');
+assert.strictEqual(archer.moves, 2, 'archer starts with full moves');
+
+const horseman = createUnit('horseman', 0, 0, 'player');
+assert.strictEqual(horseman.speed, 4, 'horseman has increased speed');
+assert.strictEqual(horseman.moves, 4, 'horseman starts with full moves');
+
 console.log('Unit tests passed');

@@ -3,6 +3,8 @@ export const UNIT_TYPES = {
   warrior: { strength: 2, speed: 2 },
   scout: { strength: 1, speed: 3 },
   barbarian: { strength: 1, speed: 2 },
+  archer: { strength: 2, speed: 2 },
+  horseman: { strength: 3, speed: 4 },
 };
 
 export const TILE_MOVEMENT_COST = {
