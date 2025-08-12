@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { createUnit, moveUnit, findPath, processUnitQueue, attackUnit } from '../src/unit.js';
+import { createUnit, moveUnit, findPath, processUnitQueue, attackUnit, getAttackableTiles } from '../src/unit.js';
 
 const map = [
   [{ type: 'grass' }, { type: 'grass' }],
@@ -113,5 +113,17 @@ assert.deepStrictEqual(
   'unit completes movement queue'
 );
 assert.strictEqual(queuedUnit.queue.length, 0, 'queue cleared after reaching destination');
+
+// attackable tiles
+const attackMap = Array.from({ length: 5 }, () =>
+  Array.from({ length: 5 }, () => ({ type: 'grass' }))
+);
+const archer2 = createUnit('archer', 2, 2, 'player');
+const tiles = getAttackableTiles(archer2, attackMap);
+assert.strictEqual(tiles.length, 12, 'archer has 12 attackable tiles at range 2');
+assert.ok(
+  tiles.some((t) => t.x === 4 && t.y === 2),
+  'attack range includes distant tile'
+);
 
 console.log('Unit tests passed');

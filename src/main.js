@@ -1,9 +1,10 @@
 import { generateMap } from './map.js';
-import { createUnit, moveUnit, TILE_MOVEMENT_COST, findPath, processUnitQueue, attackUnit } from './unit.js';
+import { createUnit, moveUnit, TILE_MOVEMENT_COST, findPath, processUnitQueue, attackUnit, getAttackableTiles } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
 import { updateBuildSelect } from './ui.js';
 import { runAI } from './ai.js';
+import { setDiplomacy, getDiplomacy, trade } from './diplomacy.js';
 
 const TILE_SIZE = 32;
 const WORLD_WIDTH = 100;
@@ -99,6 +100,8 @@ const buildSelect = document.getElementById('build-select');
 const setBuildBtn = document.getElementById('set-build');
 const civStatsDiv = document.getElementById('civ-stats');
 const revealAIBtn = document.getElementById('reveal-ai');
+const declareWarBtn = document.getElementById('declare-war');
+const tradeGoldBtn = document.getElementById('trade-gold');
 
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 
@@ -134,6 +137,7 @@ const units = [createUnit('settler', start.x, start.y, 'player')];
 const aiStart = findAIStart();
 units.push(createUnit('settler', aiStart.x, aiStart.y, 'ai'));
 const resources = { player: { gold: 0 }, barbarian: { gold: 0 }, ai: { gold: 0 } };
+setDiplomacy('player', 'ai', 'peace');
 let selected = 0;
 let selectedCity = null;
 let turn = 1;
@@ -430,6 +434,19 @@ revealAIBtn.addEventListener('click', () => {
   revealAIBtn.textContent = revealAI ? 'Hide AI 🙈' : 'Reveal AI 👁️';
 });
 
+declareWarBtn.addEventListener('click', () => {
+  const current = getDiplomacy('player', 'ai');
+  const next = current === 'war' ? 'peace' : 'war';
+  setDiplomacy('player', 'ai', next);
+  declareWarBtn.textContent = next === 'war' ? 'Make Peace 🤝' : 'Declare War ⚔️';
+  updateUI();
+});
+
+tradeGoldBtn.addEventListener('click', () => {
+  trade('player', 'ai', 10, resources);
+  updateUI();
+});
+
 setBuildBtn.addEventListener('click', () => {
   if (selectedCity) {
     selectedCity.build = buildSelect.value;
@@ -513,11 +530,19 @@ function draw() {
   panY = cameraY - targetY;
 
   let moveSet = new Set();
+  let attackSet = new Set();
   const unit = units[selected];
-  if (!selectedCity && unit && unit.owner === 'player' && unit.moves > 0) {
-    moveSet = new Set(
-      getAvailableMoves(unit, map, units).map((p) => `${p.x},${p.y}`)
-    );
+  if (!selectedCity && unit && unit.owner === 'player') {
+    if (unit.moves > 0) {
+      moveSet = new Set(
+        getAvailableMoves(unit, map, units).map((p) => `${p.x},${p.y}`)
+      );
+    }
+    if (unit.range > 1) {
+      attackSet = new Set(
+        getAttackableTiles(unit, map).map((p) => `${p.x},${p.y}`)
+      );
+    }
   }
 
   let offsetX = 0;
@@ -545,6 +570,14 @@ function draw() {
           ctx.fillStyle = 'rgba(0, 150, 255, 0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
           ctx.strokeStyle = 'rgba(0, 150, 255, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+          ctx.lineWidth = 1;
+        }
+        if (attackSet.has(key) && tile.visible) {
+          ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+          ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
+          ctx.strokeStyle = 'rgba(255, 0, 0, 0.9)';
           ctx.lineWidth = 2;
           ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
           ctx.lineWidth = 1;
@@ -854,8 +887,10 @@ function updateUI() {
     }
   }
   const { population, production } = calculateCivStats();
+  const relation = getDiplomacy('player', 'ai');
   civStatsDiv.innerHTML =
-    `Population: ${population}<br/>Production: ${production}<br/>Gold: ${resources.player.gold}<br/>Resources: ${formatResources(resources.player)}`;
+    `Population: ${population}<br/>Production: ${production}<br/>Gold: ${resources.player.gold}<br/>Resources: ${formatResources(resources.player)}<br/>AI Relations: ${relation}`;
+  declareWarBtn.textContent = relation === 'war' ? 'Make Peace 🤝' : 'Declare War ⚔️';
   const civs = new Set();
   for (const u of units) civs.add(u.owner);
   for (const row of map) {

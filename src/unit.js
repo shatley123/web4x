@@ -99,6 +99,22 @@ export function resolveCombat(attacker, defender, units) {
   }
 }
 
+export function getAttackableTiles(unit, map) {
+  const tiles = [];
+  const range = unit.range || 1;
+  for (let dy = -range; dy <= range; dy++) {
+    for (let dx = -range; dx <= range; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      if (Math.abs(dx) + Math.abs(dy) > range) continue;
+      const nx = unit.x + dx;
+      const ny = unit.y + dy;
+      if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) continue;
+      tiles.push({ x: nx, y: ny });
+    }
+  }
+  return tiles;
+}
+
 export function findPath(unit, tx, ty, map, units) {
   const width = map[0].length;
   const height = map.length;
