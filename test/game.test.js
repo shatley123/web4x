@@ -5,6 +5,9 @@ import { createCity } from '../src/city.js';
 import { endTurn } from '../src/game.js';
 
 const map = generateMap(3, 3);
+for (const row of map) {
+  for (const tile of row) tile.resource = null;
+}
 map[1][1].type = 'grass';
 map[1][1].city = createCity('player');
 map[0][1].resource = 'wheat';
@@ -13,7 +16,7 @@ units[0].moves = 0;
 const resources = { player: {}, barbarian: {} };
 
 endTurn(map, units, resources);
-assert.strictEqual(units[0].moves, 1, 'unit moves reset on end turn');
+assert.strictEqual(units[0].moves, 2, 'unit moves reset on end turn');
 assert.strictEqual(resources.player.wheat, 1, 'resource claimed');
 
 // advance production to spawn a warrior

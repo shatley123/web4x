@@ -16,7 +16,7 @@ const res = moveUnit(units[0], 1, 0, map, units);
 assert.strictEqual(res, 'attack', 'combat returns attack result');
 assert.strictEqual(units.length, 1, 'defender removed after combat');
 assert.strictEqual(units[0].x, 1, 'warrior moved into tile');
-assert.strictEqual(units[0].moves, 0, 'movement consumed');
+assert.strictEqual(units[0].moves, 1, 'movement consumed');
 assert.strictEqual(units[0].type, 'warrior', 'warrior survives');
 
 // movement blocked by water
@@ -32,5 +32,6 @@ const units3 = [createUnit('warrior', 0, 0, 'player')];
 const moved2 = moveUnit(units3[0], 1, 0, map3, units3);
 assert.strictEqual(moved2, 'move', 'move returns move result');
 assert.strictEqual(units3[0].x, 1, 'unit moved to empty tile');
+assert.strictEqual(units3[0].moves, 1, 'movement cost applied');
 
 console.log('Unit tests passed');
