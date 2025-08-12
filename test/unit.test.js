@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { createUnit, moveUnit } from '../src/unit.js';
+import { createUnit, moveUnit, findPath, processUnitQueue } from '../src/unit.js';
 
 const map = [
   [{ type: 'grass' }, { type: 'grass' }],
@@ -73,5 +73,32 @@ ship.moves = ship.speed;
 const shipBlocked = moveUnit(ship, 0, 1, waterMap, [ship]);
 assert.strictEqual(shipBlocked, false, 'ship cannot move onto land');
 assert.strictEqual(ship.x, 1, 'ship position unchanged after failed land move');
+
+// pathfinding and queued movement
+const pathMap = [
+  [{ type: 'grass' }, { type: 'grass' }, { type: 'grass' }],
+  [{ type: 'grass' }, { type: 'water' }, { type: 'grass' }],
+  [{ type: 'grass' }, { type: 'grass' }, { type: 'grass' }],
+];
+const queuedUnit = createUnit('warrior', 0, 0, 'player');
+const path = findPath(queuedUnit, 2, 2, pathMap, [queuedUnit]);
+assert.ok(path && path.length > 0, 'findPath finds a path');
+const originalPath = [...path];
+queuedUnit.queue = path;
+processUnitQueue(queuedUnit, pathMap, [queuedUnit]);
+const expectedPos = originalPath[Math.min(queuedUnit.speed, originalPath.length) - 1];
+assert.deepStrictEqual(
+  { x: queuedUnit.x, y: queuedUnit.y },
+  expectedPos,
+  'unit follows queue for available moves'
+);
+queuedUnit.moves = queuedUnit.speed;
+processUnitQueue(queuedUnit, pathMap, [queuedUnit]);
+assert.deepStrictEqual(
+  { x: queuedUnit.x, y: queuedUnit.y },
+  { x: 2, y: 2 },
+  'unit completes movement queue'
+);
+assert.strictEqual(queuedUnit.queue.length, 0, 'queue cleared after reaching destination');
 
 console.log('Unit tests passed');

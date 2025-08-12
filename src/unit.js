@@ -29,6 +29,7 @@ export function createUnit(type, x, y, owner) {
     fy: y,
     health,
     maxHealth: health,
+    queue: [],
   };
 }
 
@@ -78,5 +79,72 @@ export function resolveCombat(attacker, defender, units) {
   }
   if (attacker.health <= 0) {
     units.splice(units.indexOf(attacker), 1);
+  }
+}
+
+export function findPath(unit, tx, ty, map, units) {
+  const width = map[0].length;
+  const height = map.length;
+  const dist = Array.from({ length: height }, () => Array(width).fill(Infinity));
+  const prev = Array.from({ length: height }, () => Array(width).fill(null));
+  const queue = [{ x: unit.x, y: unit.y, cost: 0 }];
+  dist[unit.y][unit.x] = 0;
+  const dirs = [
+    [0, -1],
+    [0, 1],
+    [-1, 0],
+    [1, 0],
+  ];
+  while (queue.length) {
+    queue.sort((a, b) => a.cost - b.cost);
+    const { x, y, cost } = queue.shift();
+    if (x === tx && y === ty) break;
+    for (const [dx, dy] of dirs) {
+      const nx = x + dx;
+      const ny = y + dy;
+      if (ny < 0 || ny >= height || nx < 0 || nx >= width) continue;
+      const tile = map[ny][nx];
+      let moveCost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+      if (unit.type === 'ship') {
+        if (tile.type !== 'water') continue;
+        moveCost = 1;
+      } else if (tile.type === 'water') {
+        continue;
+      }
+      if (!isFinite(moveCost)) continue;
+      if (units.some((u) => u.x === nx && u.y === ny && u !== unit)) continue;
+      const newCost = cost + moveCost;
+      if (newCost < dist[ny][nx]) {
+        dist[ny][nx] = newCost;
+        prev[ny][nx] = { x, y };
+        queue.push({ x: nx, y: ny, cost: newCost });
+      }
+    }
+  }
+  if (dist[ty][tx] === Infinity) return null;
+  const path = [];
+  let cx = tx;
+  let cy = ty;
+  while (!(cx === unit.x && cy === unit.y)) {
+    path.unshift({ x: cx, y: cy });
+    const p = prev[cy][cx];
+    if (!p) break;
+    cx = p.x;
+    cy = p.y;
+  }
+  return path;
+}
+
+export function processUnitQueue(unit, map, units) {
+  while (unit.moves > 0 && unit.queue && unit.queue.length) {
+    const next = unit.queue[0];
+    const dx = next.x - unit.x;
+    const dy = next.y - unit.y;
+    const res = moveUnit(unit, dx, dy, map, units);
+    if (!res || res === 'attack') {
+      unit.queue = [];
+      return;
+    }
+    unit.queue.shift();
   }
 }
