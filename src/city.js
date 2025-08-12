@@ -18,6 +18,7 @@ export const UNIT_COSTS = {
   scout: 15,
   archer: 15,
   horseman: 25,
+  ship: 30,
 };
 
 export const BUILDING_COSTS = {
@@ -55,7 +56,29 @@ export function processCity(city, x, y, map, units, resources) {
   const buildingCost = BUILDING_COSTS[city.build];
   if (unitCost) {
     if (city.production >= unitCost) {
-      if (!units.some(u => u.x === x && u.y === y)) {
+      if (city.build === 'ship') {
+        const dirs = [
+          [0, -1],
+          [0, 1],
+          [-1, 0],
+          [1, 0],
+        ];
+        let spawn = null;
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) continue;
+          const tile = map[ny][nx];
+          if (tile.type === 'water' && !units.some(u => u.x === nx && u.y === ny)) {
+            spawn = { nx, ny };
+            break;
+          }
+        }
+        if (spawn) {
+          units.push(createUnit('ship', spawn.nx, spawn.ny, city.owner));
+          city.production -= unitCost;
+        }
+      } else if (!units.some(u => u.x === x && u.y === y)) {
         units.push(createUnit(city.build, x, y, city.owner));
         city.production -= unitCost;
       }

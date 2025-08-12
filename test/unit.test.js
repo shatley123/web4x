@@ -61,4 +61,17 @@ assert.strictEqual(horseman.speed, 4, 'horseman has increased speed');
 assert.strictEqual(horseman.moves, 4, 'horseman starts with full moves');
 assert.strictEqual(horseman.health, 10, 'horseman starts with full health');
 
+// ship movement
+const waterMap = [
+  [{ type: 'water' }, { type: 'water' }],
+  [{ type: 'grass' }, { type: 'grass' }],
+];
+const ship = createUnit('ship', 0, 0, 'player');
+const shipMove = moveUnit(ship, 1, 0, waterMap, [ship]);
+assert.strictEqual(shipMove, 'move', 'ship moves across water');
+ship.moves = ship.speed;
+const shipBlocked = moveUnit(ship, 0, 1, waterMap, [ship]);
+assert.strictEqual(shipBlocked, false, 'ship cannot move onto land');
+assert.strictEqual(ship.x, 1, 'ship position unchanged after failed land move');
+
 console.log('Unit tests passed');
