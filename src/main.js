@@ -212,6 +212,26 @@ function nextPlayerUnit() {
   selectedCity = null;
 }
 
+function getAvailableMoves(unit, map, units) {
+  const dirs = [
+    [0, -1],
+    [0, 1],
+    [-1, 0],
+    [1, 0],
+  ];
+  const moves = [];
+  for (const [dx, dy] of dirs) {
+    const nx = unit.x + dx;
+    const ny = unit.y + dy;
+    if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) continue;
+    const tile = map[ny][nx];
+    if (tile.type === 'water' || tile.type === 'mountain') continue;
+    if (units.some((u) => u.x === nx && u.y === ny && u.owner === unit.owner)) continue;
+    moves.push({ x: nx, y: ny });
+  }
+  return moves;
+}
+
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   updateVisibility();
@@ -230,6 +250,14 @@ function draw() {
     0,
     Math.min(Math.floor(focus.fy) - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT)
   );
+
+  let moveSet = new Set();
+  const unit = units[selected];
+  if (!selectedCity && unit && unit.owner === 'player' && unit.moves > 0) {
+    moveSet = new Set(
+      getAvailableMoves(unit, map, units).map((p) => `${p.x},${p.y}`)
+    );
+  }
 
   let offsetX = 0;
   let offsetY = 0;
@@ -251,14 +279,26 @@ function draw() {
       const posY = y * TILE_SIZE;
       if (tile.seen) {
         drawTile(tile.type, posX, posY);
+        const key = `${mapX},${mapY}`;
+        if (moveSet.has(key) && tile.visible) {
+          ctx.fillStyle = 'rgba(255,255,0,0.3)';
+          ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
+        }
         if (tile.resource) drawResource(tile.resource, posX, posY);
+        if (tile.city) {
+          ctx.fillStyle = '#ff0000';
+          ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+        }
         if (!tile.visible) {
           ctx.fillStyle = 'rgba(0,0,0,0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
         }
-        if (tile.city) {
-          ctx.fillStyle = '#ff0000';
-          ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+        if (tile.claimedBy) {
+          const colors = { player: '#ffff00', barbarian: '#ff0000' };
+          ctx.strokeStyle = colors[tile.claimedBy] || '#ffffff';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+          ctx.lineWidth = 1;
         }
       } else {
         ctx.fillStyle = '#000000';
