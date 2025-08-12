@@ -541,6 +541,15 @@ function draw() {
     const posX = (u.fx - cameraX) * TILE_SIZE;
     const posY = (u.fy - cameraY) * TILE_SIZE;
     drawUnit(u, posX, posY);
+    ctx.fillStyle = '#ff0000';
+    ctx.fillRect(posX + 2, posY + 2, TILE_SIZE - 4, 4);
+    ctx.fillStyle = '#00ff00';
+    ctx.fillRect(
+      posX + 2,
+      posY + 2,
+      ((TILE_SIZE - 4) * u.health) / u.maxHealth,
+      4
+    );
     if (!selectedCity && u === units[selected]) {
       ctx.strokeStyle = '#ffffff';
       ctx.strokeRect(posX + 2, posY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
@@ -752,7 +761,7 @@ function updateUI() {
     const unit = units[selected];
     if (unit) {
       const tile = map[unit.y][unit.x];
-      info.innerHTML = `Turn ${turn}<br/>Selected: ${unit.type} (${unit.owner})<br/>Moves: ${unit.moves}<br/>Tile: ${tile.type}`;
+      info.innerHTML = `Turn ${turn}<br/>Selected: ${unit.type} (${unit.owner})<br/>Health: ${unit.health}/${unit.maxHealth}<br/>Moves: ${unit.moves}<br/>Tile: ${tile.type}`;
     } else {
       info.innerHTML = `Turn ${turn}`;
     }
