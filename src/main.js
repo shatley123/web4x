@@ -1,10 +1,13 @@
 import { generateMap } from './map.js';
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 import { createUnit, moveUnit } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
 
 const TILE_SIZE = 32;
 const WORLD_WIDTH = 100;
@@ -19,6 +22,9 @@ canvas.width = VIEW_WIDTH * TILE_SIZE;
 canvas.height = VIEW_HEIGHT * TILE_SIZE;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 const player = { x: Math.floor(WORLD_WIDTH / 2), y: Math.floor(WORLD_HEIGHT / 2) };
 
@@ -40,6 +46,7 @@ window.addEventListener('keydown', (e) => {
       break;
     case 'c': // found city
       map[player.y][player.x].city = true;
+<<<<<<< HEAD
 =======
 const info = document.getElementById('info');
 const endTurnBtn = document.getElementById('end-turn');
@@ -173,10 +180,13 @@ window.addEventListener('keydown', (e) => {
       nextPlayerUnit();
       e.preventDefault();
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
       break;
     default:
       return;
   }
+<<<<<<< HEAD
 <<<<<<< HEAD
   draw();
 });
@@ -245,11 +255,19 @@ function nextPlayerUnit() {
 }
 
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+  draw();
+});
+
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   updateVisibility();
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
   const camX = Math.max(0, Math.min(player.x - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH));
   const camY = Math.max(0, Math.min(player.y - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT));
 
@@ -257,6 +275,7 @@ function draw() {
     for (let x = 0; x < VIEW_WIDTH; x++) {
       const mapX = camX + x;
       const mapY = camY + y;
+<<<<<<< HEAD
 =======
   for (const u of units) {
     u.fx += (u.x - u.fx) * 0.2;
@@ -289,15 +308,20 @@ function draw() {
       const mapX = cameraX + x;
       const mapY = cameraY + y;
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
       const tile = map[mapY][mapX];
       const posX = x * TILE_SIZE;
       const posY = y * TILE_SIZE;
       if (tile.seen) {
         drawTile(tile.type, posX, posY);
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
         if (tile.resource) drawResource(tile.resource, posX, posY);
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
         if (!tile.visible) {
           ctx.fillStyle = 'rgba(0,0,0,0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
@@ -306,11 +330,14 @@ function draw() {
           ctx.fillStyle = '#ff0000';
           ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
 <<<<<<< HEAD
+<<<<<<< HEAD
           ctx.strokeStyle = '#ffff00';
           ctx.lineWidth = 2;
           ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
 =======
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
         }
       } else {
         ctx.fillStyle = '#000000';
@@ -320,8 +347,11 @@ function draw() {
   }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   highlightMoves(camX, camY);
 
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
   // draw player relative to camera
   ctx.fillStyle = '#ffff00';
   ctx.beginPath();
@@ -333,6 +363,7 @@ function draw() {
     Math.PI * 2
   );
   ctx.fill();
+<<<<<<< HEAD
 =======
   for (const u of units) {
     const tile = map[u.y][u.x];
@@ -351,6 +382,8 @@ function draw() {
   updateUI();
   requestAnimationFrame(draw);
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
 }
 
 function updateVisibility() {
@@ -360,6 +393,9 @@ function updateVisibility() {
     }
   }
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
   for (let dy = -VISION_RADIUS; dy <= VISION_RADIUS; dy++) {
     for (let dx = -VISION_RADIUS; dx <= VISION_RADIUS; dx++) {
       const nx = player.x + dx;
@@ -373,6 +409,7 @@ function updateVisibility() {
   }
 }
 
+<<<<<<< HEAD
 function highlightMoves(camX, camY) {
   const moves = [
     { dx: 1, dy: 0 },
@@ -406,6 +443,8 @@ function highlightMoves(camX, camY) {
   }
 }
 
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
 function drawTile(type, x, y) {
   switch (type) {
     case 'water':
@@ -475,6 +514,7 @@ function drawTile(type, x, y) {
       ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
   }
 }
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 
@@ -557,3 +597,5 @@ function updateUI() {
 
 requestAnimationFrame(draw);
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1

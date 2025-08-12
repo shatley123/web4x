@@ -1,10 +1,14 @@
 // available terrain types
 export const TILE_TYPES = ["water", "grass", "mountain", "desert", "forest"];
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
 
 /**
  * Generate a map of given width and height.
  * Each tile is an object { type: string, city: boolean, seen: boolean, visible: boolean }
+<<<<<<< HEAD
 =======
 export const RESOURCE_TYPES = ["wheat", "iron"];
 
@@ -12,6 +16,8 @@ export const RESOURCE_TYPES = ["wheat", "iron"];
  * Generate a map of given width and height.
  * Each tile is an object { type: string, resource: string|null, city: boolean, seen: boolean, visible: boolean, claimedBy: string|null }
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
  * @param {number} width
  * @param {number} height
  * @returns {Array<Array<{type:string, city:boolean}>>}
@@ -21,6 +27,7 @@ export function generateMap(width, height) {
   for (let y = 0; y < height; y++) {
     const row = [];
     for (let x = 0; x < width; x++) {
+<<<<<<< HEAD
 <<<<<<< HEAD
       row.push({ type: randomTile(), city: false, seen: false, visible: false });
 =======
@@ -34,6 +41,9 @@ export function generateMap(width, height) {
         claimedBy: null
       });
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+      row.push({ type: randomTile(), city: false, seen: false, visible: false });
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
     }
     map.push(row);
   }
@@ -49,6 +59,7 @@ function randomTile() {
   return "grass";                 // remaining 40% grassland
 }
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 function randomResource(type) {
@@ -59,3 +70,5 @@ function randomResource(type) {
   return null;
 }
 >>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
+=======
+>>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
