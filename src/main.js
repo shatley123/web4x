@@ -100,6 +100,7 @@ const cityPanel = document.getElementById('city-panel');
 const buildSelect = document.getElementById('build-select');
 const setBuildBtn = document.getElementById('set-build');
 const civStatsDiv = document.getElementById('civ-stats');
+const revealAIBtn = document.getElementById('reveal-ai');
 
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 
@@ -146,6 +147,7 @@ let panY = 0;
 let isPanning = false;
 let lastMouseX = 0;
 let lastMouseY = 0;
+let revealAI = false;
 
 let audioCtx;
 function playTone(freq, duration) {
@@ -395,6 +397,11 @@ foundCityBtn.addEventListener('click', () => {
   }
 });
 
+revealAIBtn.addEventListener('click', () => {
+  revealAI = !revealAI;
+  revealAIBtn.textContent = revealAI ? 'Hide AI 🙈' : 'Reveal AI 👁️';
+});
+
 setBuildBtn.addEventListener('click', () => {
   if (selectedCity) {
     selectedCity.build = buildSelect.value;
@@ -553,12 +560,23 @@ function updateVisibility() {
     }
   }
   for (const u of units) {
+    if (u.owner !== 'player' && !revealAI) continue;
     for (let dy = -VISION_RADIUS; dy <= VISION_RADIUS; dy++) {
       for (let dx = -VISION_RADIUS; dx <= VISION_RADIUS; dx++) {
         const nx = u.x + dx;
         const ny = u.y + dy;
         if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < WORLD_HEIGHT) {
           const tile = map[ny][nx];
+          tile.visible = true;
+          tile.seen = true;
+        }
+      }
+    }
+  }
+  if (revealAI) {
+    for (const row of map) {
+      for (const tile of row) {
+        if (tile.city && tile.city.owner !== 'player') {
           tile.visible = true;
           tile.seen = true;
         }
