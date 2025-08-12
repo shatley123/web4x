@@ -1,11 +1,13 @@
-import { moveUnit } from './unit.js';
+import { moveUnit, processUnitQueue } from './unit.js';
 import { processCity } from './city.js';
 
 export function endTurn(map, units, resources) {
   // Reset movement and move barbarians
   for (const unit of [...units]) {
     unit.moves = unit.speed;
-    if (unit.owner === 'barbarian') {
+    if (unit.queue && unit.queue.length) {
+      processUnitQueue(unit, map, units);
+    } else if (unit.owner === 'barbarian') {
       const dirs = [
         [0, -1],
         [0, 1],

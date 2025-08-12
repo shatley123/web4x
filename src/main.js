@@ -1,5 +1,5 @@
 import { generateMap } from './map.js';
-import { createUnit, moveUnit, TILE_MOVEMENT_COST } from './unit.js';
+import { createUnit, moveUnit, TILE_MOVEMENT_COST, findPath, processUnitQueue } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
 import { updateBuildSelect } from './ui.js';
@@ -242,8 +242,15 @@ canvas.addEventListener('click', (e) => {
       const dx = tx - unit.x;
       const dy = ty - unit.y;
       if (Math.abs(dx) + Math.abs(dy) === 1) {
+        unit.queue = [];
         const res = moveUnit(unit, dx, dy, map, units);
         handleAction(res);
+      } else {
+        const path = findPath(unit, tx, ty, map, units);
+        if (path) {
+          unit.queue = path;
+          processUnitQueue(unit, map, units);
+        }
       }
     }
   }
@@ -326,15 +333,19 @@ window.addEventListener('keydown', (e) => {
   if (!unit || unit.owner !== 'player') return;
   switch (e.key) {
     case 'ArrowUp':
+      unit.queue = [];
       handleAction(moveUnit(unit, 0, -1, map, units));
       break;
     case 'ArrowDown':
+      unit.queue = [];
       handleAction(moveUnit(unit, 0, 1, map, units));
       break;
     case 'ArrowLeft':
+      unit.queue = [];
       handleAction(moveUnit(unit, -1, 0, map, units));
       break;
     case 'ArrowRight':
+      unit.queue = [];
       handleAction(moveUnit(unit, 1, 0, map, units));
       break;
     case 'c': // found city
@@ -375,6 +386,7 @@ nextUnitBtn.addEventListener('click', () => {
 attackBtn.addEventListener('click', () => {
   const unit = units[selected];
   if (unit && unit.owner === 'player') {
+    unit.queue = [];
     const dirs = [
       [0, -1],
       [0, 1],
@@ -573,6 +585,15 @@ function draw() {
         ctx.fillStyle = '#000000';
         ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
       }
+    }
+  }
+
+  if (!selectedCity && unit && unit.owner === 'player' && unit.queue.length) {
+    ctx.fillStyle = 'rgba(255, 255, 0, 0.4)';
+    for (const step of unit.queue) {
+      const px = (step.x - cameraX) * TILE_SIZE + TILE_SIZE / 4;
+      const py = (step.y - cameraY) * TILE_SIZE + TILE_SIZE / 4;
+      ctx.fillRect(px, py, TILE_SIZE / 2, TILE_SIZE / 2);
     }
   }
 
