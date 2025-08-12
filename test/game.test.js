@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { generateMap } from '../src/map.js';
 import { createUnit } from '../src/unit.js';
-import { createCity } from '../src/city.js';
+import { createCity, MAX_POPULATION } from '../src/city.js';
 import { endTurn } from '../src/game.js';
 
 const map = generateMap(3, 3);
@@ -59,5 +59,11 @@ map2[2][4].resource = 'iron';
 const resources2 = { player: {}, barbarian: {} };
 for (let i = 0; i < 3; i++) endTurn(map2, [], resources2);
 assert.strictEqual(resources2.player.iron, 1, 'distant resource claimed after growth');
+
+// population cap
+const capMap = [[{ type: 'grass', resource: null, city: createCity('player'), seen: false, visible: false, claimedBy: null }]];
+const capResources = { player: {}, barbarian: {} };
+for (let i = 0; i < MAX_POPULATION + 5; i++) endTurn(capMap, [], capResources);
+assert.strictEqual(capMap[0][0].city.population, MAX_POPULATION, 'city population capped');
 
 console.log('Game loop tests passed');
