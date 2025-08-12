@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Web4X</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
       margin: 0;
@@ -11,75 +12,26 @@
         radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.25), transparent 40%),
         linear-gradient(135deg, #a0e3ff, #4891ff);
       background-attachment: fixed;
-      color: #fff;
       font-family: 'Segoe UI', Tahoma, sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    #game-container {
-      display: flex;
-      margin-top: 10px;
-      align-items: flex-start;
     }
     canvas {
-      border: 2px solid #888;
-      background: #000;
-      flex: none;
       image-rendering: pixelated;
-    }
-    #sidebar {
-      margin-left: 20px;
-      background: rgba(255, 255, 255, 0.15);
-      backdrop-filter: blur(8px);
-      padding: 10px;
-      border-radius: 12px;
-      width: 220px;
-      color: #000;
-    }
-    #sidebar h2 {
-      margin-top: 0;
-      font-size: 18px;
-    }
-    #sidebar p:not(.hint) {
-      background: rgba(255, 255, 255, 0.3);
-      padding: 6px;
-      border-radius: 8px;
-      margin: 6px 0;
-    }
-    #sidebar button {
-      width: 100%;
-      margin: 4px 0;
-      padding: 8px;
-      background: linear-gradient(#e0efff, #bcd3ff);
-      border: 1px solid #88a;
-      color: #000;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    #sidebar button:hover {
-      background: linear-gradient(#f0f8ff, #cfe0ff);
-    }
-    .hint {
-      font-size: 12px;
-      color: #ccc;
     }
   </style>
 </head>
-<body>
-  <h1>Web4X - Minimal 4X Prototype 🚀</h1>
-  <div id="game-container">
-    <canvas id="game"></canvas>
-    <div id="sidebar">
-      <h2>Status 📊</h2>
-      <p id="info"></p>
-      <h3>Civilization Stats</h3>
-      <p id="civ-stats"></p>
-      <p id="civs"></p>
-      <p id="hover-info"></p>
-      <div id="city-panel" style="display:none;">
-        <select id="build-select">
+<body class="flex flex-col items-center min-h-screen text-white">
+  <h1 class="text-2xl font-bold mt-4">Web4X - Minimal 4X Prototype 🚀</h1>
+  <div id="game-container" class="flex mt-2 items-start">
+    <canvas id="game" class="border-2 border-gray-500 bg-black"></canvas>
+    <div id="sidebar" class="ml-5 bg-white/15 backdrop-blur p-2 rounded-xl w-56 text-black">
+      <h2 class="mt-0 text-lg">Status 📊</h2>
+      <p id="info" class="bg-white/30 p-2 rounded-md my-1"></p>
+      <h3 class="font-semibold">Civilization Stats</h3>
+      <p id="civ-stats" class="bg-white/30 p-2 rounded-md my-1"></p>
+      <p id="civs" class="bg-white/30 p-2 rounded-md my-1"></p>
+      <p id="hover-info" class="bg-white/30 p-2 rounded-md my-1"></p>
+      <div id="city-panel" class="hidden">
+        <select id="build-select" class="w-full mb-2 p-2 border rounded">
           <option value="">None</option>
           <option value="warrior">Warrior ⚔️</option>
           <option value="settler">Settler 🛖</option>
@@ -89,18 +41,18 @@
           <option value="ship">Ship 🚢</option>
           <option value="granary">Granary (Building)</option>
         </select>
-        <button id="set-build">Set Production ⚒️</button>
+        <button id="set-build" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Set Production ⚒️</button>
       </div>
       <div id="controls">
-        <button id="next-unit">Next Unit 🔁 (Tab)</button>
-        <button id="found-city">Found City 🏙️ (c)</button>
-        <button id="attack">Attack ⚔️</button>
-        <button id="end-turn">End Turn ⏭️ (Enter)</button>
-        <button id="reveal-ai">Reveal AI 👁️</button>
-        <button id="declare-war">Declare War ⚔️</button>
-        <button id="trade-gold">Trade 10 Gold 💰</button>
+        <button id="next-unit" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Next Unit 🔁 (Tab)</button>
+        <button id="found-city" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Found City 🏙️ (c)</button>
+        <button id="attack" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Attack ⚔️</button>
+        <button id="end-turn" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">End Turn ⏭️ (Enter)</button>
+        <button id="reveal-ai" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Reveal AI 👁️</button>
+        <button id="declare-war" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Declare War ⚔️</button>
+        <button id="trade-gold" class="w-full my-1 py-2 bg-gradient-to-b from-blue-100 to-blue-200 border border-blue-300 text-black rounded hover:from-blue-50 hover:to-blue-100">Trade 10 Gold 💰</button>
       </div>
-      <p class="hint">Use arrow keys or click adjacent tiles to move. Right-click and drag or WASD to pan.</p>
+      <p class="hint text-xs text-gray-300">Use arrow keys or click adjacent tiles to move. Right-click and drag or WASD to pan.</p>
     </div>
   </div>
   <script type="module" src="./src/main.js"></script>
