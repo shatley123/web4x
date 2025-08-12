@@ -7,6 +7,13 @@ const VIEW_WIDTH = 20;
 const VIEW_HEIGHT = 15;
 const VISION_RADIUS = 2;
 
+const CITY_COLOR = '#ff0000';
+const CITY_BORDER_COLOR = '#ffff00';
+const MOVE_HIGHLIGHT_COLOR = 'rgba(255,255,0,0.3)';
+const PLAYER_COLOR = '#ffff00';
+const FOG_COLOR = 'rgba(0,0,0,0.5)';
+const UNKNOWN_COLOR = '#000000';
+
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 canvas.width = VIEW_WIDTH * TILE_SIZE;
@@ -20,16 +27,16 @@ draw();
 window.addEventListener('keydown', (e) => {
   switch (e.key) {
     case 'ArrowUp':
-      if (player.y > 0) player.y--;
+      if (canMove(player.x, player.y - 1)) player.y--;
       break;
     case 'ArrowDown':
-      if (player.y < WORLD_HEIGHT - 1) player.y++;
+      if (canMove(player.x, player.y + 1)) player.y++;
       break;
     case 'ArrowLeft':
-      if (player.x > 0) player.x--;
+      if (canMove(player.x - 1, player.y)) player.x--;
       break;
     case 'ArrowRight':
-      if (player.x < WORLD_WIDTH - 1) player.x++;
+      if (canMove(player.x + 1, player.y)) player.x++;
       break;
     case 'c': // found city
       map[player.y][player.x].city = true;
@@ -57,22 +64,29 @@ function draw() {
       if (tile.seen) {
         drawTile(tile.type, posX, posY);
         if (!tile.visible) {
-          ctx.fillStyle = 'rgba(0,0,0,0.5)';
+          ctx.fillStyle = FOG_COLOR;
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
         }
         if (tile.city) {
-          ctx.fillStyle = '#ff0000';
+          ctx.save();
+          ctx.fillStyle = CITY_COLOR;
           ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+          ctx.strokeStyle = CITY_BORDER_COLOR;
+          ctx.lineWidth = 2;
+          ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+          ctx.restore();
         }
       } else {
-        ctx.fillStyle = '#000000';
+        ctx.fillStyle = UNKNOWN_COLOR;
         ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
       }
     }
   }
 
+  highlightMoves(camX, camY);
+
   // draw player relative to camera
-  ctx.fillStyle = '#ffff00';
+  ctx.fillStyle = PLAYER_COLOR;
   ctx.beginPath();
   ctx.arc(
     (player.x - camX) * TILE_SIZE + TILE_SIZE / 2,
@@ -98,6 +112,33 @@ function updateVisibility() {
         const tile = map[ny][nx];
         tile.visible = true;
         tile.seen = true;
+      }
+    }
+  }
+}
+
+function canMove(x, y) {
+  if (x < 0 || x >= WORLD_WIDTH || y < 0 || y >= WORLD_HEIGHT) return false;
+  const type = map[y][x].type;
+  return type !== 'water' && type !== 'mountain';
+}
+
+function highlightMoves(camX, camY) {
+  const moves = [
+    { dx: 1, dy: 0 },
+    { dx: -1, dy: 0 },
+    { dx: 0, dy: 1 },
+    { dx: 0, dy: -1 },
+  ];
+  ctx.fillStyle = MOVE_HIGHLIGHT_COLOR;
+  for (const { dx, dy } of moves) {
+    const nx = player.x + dx;
+    const ny = player.y + dy;
+    if (canMove(nx, ny)) {
+      const screenX = (nx - camX) * TILE_SIZE;
+      const screenY = (ny - camY) * TILE_SIZE;
+      if (screenX >= 0 && screenX < canvas.width && screenY >= 0 && screenY < canvas.height) {
+        ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
       }
     }
   }
