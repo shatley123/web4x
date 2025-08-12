@@ -4,7 +4,7 @@ import { processCity } from './city.js';
 export function endTurn(map, units, resources) {
   // Reset movement and move barbarians
   for (const unit of [...units]) {
-    unit.moves = 1;
+    unit.moves = unit.speed;
     if (unit.owner === 'barbarian') {
       const dirs = [
         [0, -1],

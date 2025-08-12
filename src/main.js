@@ -1,5 +1,5 @@
 import { generateMap } from './map.js';
-import { createUnit, moveUnit } from './unit.js';
+import { createUnit, moveUnit, TILE_MOVEMENT_COST } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
 
@@ -15,7 +15,78 @@ const ctx = canvas.getContext('2d');
 canvas.width = VIEW_WIDTH * TILE_SIZE;
 canvas.height = VIEW_HEIGHT * TILE_SIZE;
 
+const textures = {};
+
+function createPattern(drawFn) {
+  const c = document.createElement('canvas');
+  c.width = c.height = 32;
+  const cctx = c.getContext('2d');
+  drawFn(cctx);
+  return ctx.createPattern(c, 'repeat');
+}
+
+function initTextures() {
+  textures.water = createPattern((cctx) => {
+    cctx.fillStyle = '#1e90ff';
+    cctx.fillRect(0, 0, 32, 32);
+    cctx.strokeStyle = '#add8e6';
+    cctx.beginPath();
+    cctx.arc(16, 16, 8, 0, Math.PI);
+    cctx.stroke();
+  });
+  textures.grass = createPattern((cctx) => {
+    cctx.fillStyle = '#228b22';
+    cctx.fillRect(0, 0, 32, 32);
+    cctx.strokeStyle = '#32cd32';
+    for (let i = 0; i < 4; i++) {
+      const gx = i * 8 + 4;
+      cctx.beginPath();
+      cctx.moveTo(gx, 28);
+      cctx.lineTo(gx, 16);
+      cctx.stroke();
+    }
+  });
+  textures.mountain = createPattern((cctx) => {
+    cctx.fillStyle = '#a9a9a9';
+    cctx.fillRect(0, 0, 32, 32);
+    cctx.fillStyle = '#696969';
+    cctx.beginPath();
+    cctx.moveTo(16, 4);
+    cctx.lineTo(4, 28);
+    cctx.lineTo(28, 28);
+    cctx.closePath();
+    cctx.fill();
+  });
+  textures.desert = createPattern((cctx) => {
+    cctx.fillStyle = '#edc9af';
+    cctx.fillRect(0, 0, 32, 32);
+    cctx.fillStyle = '#deb887';
+    cctx.beginPath();
+    cctx.moveTo(4, 28);
+    cctx.lineTo(16, 16);
+    cctx.lineTo(28, 28);
+    cctx.closePath();
+    cctx.fill();
+  });
+  textures.forest = createPattern((cctx) => {
+    cctx.fillStyle = '#006400';
+    cctx.fillRect(0, 0, 32, 32);
+    cctx.fillStyle = '#228b22';
+    cctx.beginPath();
+    cctx.moveTo(16, 6);
+    cctx.lineTo(6, 26);
+    cctx.lineTo(26, 26);
+    cctx.closePath();
+    cctx.fill();
+    cctx.fillStyle = '#8b4513';
+    cctx.fillRect(14, 22, 4, 6);
+  });
+}
+
+initTextures();
+
 const info = document.getElementById('info');
+const hoverInfo = document.getElementById('hover-info');
 const endTurnBtn = document.getElementById('end-turn');
 const nextUnitBtn = document.getElementById('next-unit');
 const createWarriorBtn = document.getElementById('create-warrior');
@@ -105,6 +176,25 @@ canvas.addEventListener('click', (e) => {
       }
     }
   }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const tx = Math.floor((e.clientX - rect.left) / TILE_SIZE) + cameraX;
+  const ty = Math.floor((e.clientY - rect.top) / TILE_SIZE) + cameraY;
+  const tile = map[ty] && map[ty][tx];
+  if (tile && tile.seen) {
+    let text = `Tile: ${tile.type}`;
+    if (tile.resource) text += `, ${tile.resource}`;
+    if (tile.city) text += `, City (${tile.city.owner})`;
+    hoverInfo.textContent = text;
+  } else {
+    hoverInfo.textContent = '';
+  }
+});
+
+canvas.addEventListener('mouseleave', () => {
+  hoverInfo.textContent = '';
 });
 
 canvas.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -285,7 +375,8 @@ function getAvailableMoves(unit, map, units) {
     const ny = unit.y + dy;
     if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) continue;
     const tile = map[ny][nx];
-    if (tile.type === 'water' || tile.type === 'mountain') continue;
+    const cost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+    if (!isFinite(cost) || cost > unit.moves) continue;
     if (units.some((u) => u.x === nx && u.y === ny && u.owner === unit.owner)) continue;
     moves.push({ x: nx, y: ny });
   }
@@ -411,72 +502,13 @@ function updateVisibility() {
 }
 
 function drawTile(type, x, y) {
-  switch (type) {
-    case 'water':
-      ctx.fillStyle = '#1e90ff';
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-      ctx.strokeStyle = '#add8e6';
-      ctx.beginPath();
-      ctx.arc(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 4, 0, Math.PI);
-      ctx.stroke();
-      break;
-    case 'grass':
-      ctx.fillStyle = '#228b22';
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-      ctx.strokeStyle = '#32cd32';
-      for (let i = 0; i < 4; i++) {
-        const gx = x + i * (TILE_SIZE / 4) + TILE_SIZE / 8;
-        ctx.beginPath();
-        ctx.moveTo(gx, y + TILE_SIZE - 4);
-        ctx.lineTo(gx, y + TILE_SIZE / 2);
-        ctx.stroke();
-      }
-      break;
-    case 'mountain':
-      ctx.fillStyle = '#a9a9a9';
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = '#696969';
-      ctx.beginPath();
-      ctx.moveTo(x + TILE_SIZE / 2, y + 4);
-      ctx.lineTo(x + 4, y + TILE_SIZE - 4);
-      ctx.lineTo(x + TILE_SIZE - 4, y + TILE_SIZE - 4);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.moveTo(x + TILE_SIZE / 2, y + 4);
-      ctx.lineTo(x + TILE_SIZE / 2 - 6, y + TILE_SIZE / 2);
-      ctx.lineTo(x + TILE_SIZE / 2 + 6, y + TILE_SIZE / 2);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'desert':
-      ctx.fillStyle = '#edc9af';
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = '#deb887';
-      ctx.beginPath();
-      ctx.moveTo(x + 4, y + TILE_SIZE - 4);
-      ctx.lineTo(x + TILE_SIZE / 2, y + TILE_SIZE / 2);
-      ctx.lineTo(x + TILE_SIZE - 4, y + TILE_SIZE - 4);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'forest':
-      ctx.fillStyle = '#006400';
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-      ctx.fillStyle = '#228b22';
-      ctx.beginPath();
-      ctx.moveTo(x + TILE_SIZE / 2, y + 6);
-      ctx.lineTo(x + 6, y + TILE_SIZE - 6);
-      ctx.lineTo(x + TILE_SIZE - 6, y + TILE_SIZE - 6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.fillStyle = '#8b4513';
-      ctx.fillRect(x + TILE_SIZE / 2 - 2, y + TILE_SIZE - 10, 4, 6);
-      break;
-    default:
-      ctx.fillStyle = '#ff00ff';
-      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+  const pattern = textures[type];
+  if (pattern) {
+    ctx.fillStyle = pattern;
+    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+  } else {
+    ctx.fillStyle = '#ff00ff';
+    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
   }
 }
 

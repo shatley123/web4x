@@ -1,11 +1,20 @@
 export const UNIT_TYPES = {
-  settler: { strength: 0 },
-  warrior: { strength: 2 },
-  barbarian: { strength: 1 }
+  settler: { strength: 0, speed: 2 },
+  warrior: { strength: 2, speed: 2 },
+  barbarian: { strength: 1, speed: 2 },
+};
+
+export const TILE_MOVEMENT_COST = {
+  water: Infinity,
+  mountain: Infinity,
+  grass: 1,
+  desert: 1,
+  forest: 2,
 };
 
 export function createUnit(type, x, y, owner) {
-  return { type, x, y, owner, moves: 1, fx: x, fy: y };
+  const speed = UNIT_TYPES[type].speed;
+  return { type, x, y, owner, moves: speed, speed, fx: x, fy: y };
 }
 
 export function moveUnit(unit, dx, dy, map, units) {
@@ -14,7 +23,8 @@ export function moveUnit(unit, dx, dy, map, units) {
   const ny = unit.y + dy;
   if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) return false;
   const tile = map[ny][nx];
-  if (tile.type === 'water' || tile.type === 'mountain') return false;
+  const cost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+  if (!isFinite(cost) || cost > unit.moves) return false;
 
   const target = units.find(u => u.x === nx && u.y === ny);
   if (target) {
@@ -25,7 +35,7 @@ export function moveUnit(unit, dx, dy, map, units) {
       unit.fy = unit.y;
       unit.x = nx;
       unit.y = ny;
-      unit.moves -= 1;
+      unit.moves -= cost;
       return 'attack';
     }
     return false;
@@ -35,7 +45,7 @@ export function moveUnit(unit, dx, dy, map, units) {
   unit.fy = unit.y;
   unit.x = nx;
   unit.y = ny;
-  unit.moves -= 1;
+  unit.moves -= cost;
   return 'move';
 }
 
