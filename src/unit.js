@@ -5,6 +5,7 @@ export const UNIT_TYPES = {
   barbarian: { strength: 1, speed: 2, health: 10 },
   archer: { strength: 2, speed: 2, health: 10 },
   horseman: { strength: 3, speed: 4, health: 10 },
+  ship: { strength: 3, speed: 3, health: 10 },
 };
 
 export const TILE_MOVEMENT_COST = {
@@ -37,7 +38,11 @@ export function moveUnit(unit, dx, dy, map, units) {
   const ny = unit.y + dy;
   if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) return false;
   const tile = map[ny][nx];
-  const cost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+  let cost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+  if (unit.type === 'ship') {
+    if (tile.type !== 'water') return false;
+    cost = 1;
+  }
   if (!isFinite(cost) || cost > unit.moves) return false;
 
   const target = units.find(u => u.x === nx && u.y === ny);

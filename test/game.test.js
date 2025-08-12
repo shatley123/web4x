@@ -66,4 +66,43 @@ const capResources = { player: {}, barbarian: {} };
 for (let i = 0; i < MAX_POPULATION + 5; i++) endTurn(capMap, [], capResources);
 assert.strictEqual(capMap[0][0].city.population, MAX_POPULATION, 'city population capped');
 
+// ship production
+const coastMap = [
+  [
+    { type: 'water', resource: null, city: null, seen: false, visible: false, claimedBy: null },
+    { type: 'grass', resource: null, city: null, seen: false, visible: false, claimedBy: null },
+  ],
+  [
+    { type: 'grass', resource: null, city: createCity('player'), seen: false, visible: false, claimedBy: null },
+    { type: 'grass', resource: null, city: null, seen: false, visible: false, claimedBy: null },
+  ],
+];
+const coastUnits = [];
+const coastResources = { player: {}, barbarian: {} };
+coastMap[1][0].city.build = 'ship';
+for (let i = 0; i < 6; i++) endTurn(coastMap, coastUnits, coastResources);
+assert.ok(
+  coastUnits.some((u) => u.type === 'ship' && u.x === 0 && u.y === 0),
+  'coastal city produced ship on adjacent water'
+);
+
+const inlandMap = [
+  [
+    { type: 'grass', resource: null, city: null, seen: false, visible: false, claimedBy: null },
+    { type: 'grass', resource: null, city: null, seen: false, visible: false, claimedBy: null },
+  ],
+  [
+    { type: 'grass', resource: null, city: createCity('player'), seen: false, visible: false, claimedBy: null },
+    { type: 'grass', resource: null, city: null, seen: false, visible: false, claimedBy: null },
+  ],
+];
+const inlandUnits = [];
+const inlandResources = { player: {}, barbarian: {} };
+inlandMap[1][0].city.build = 'ship';
+for (let i = 0; i < 6; i++) endTurn(inlandMap, inlandUnits, inlandResources);
+assert.ok(
+  !inlandUnits.some((u) => u.type === 'ship'),
+  'inland city cannot produce ship'
+);
+
 console.log('Game loop tests passed');

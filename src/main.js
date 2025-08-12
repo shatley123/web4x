@@ -460,7 +460,11 @@ function getAvailableMoves(unit, map, units) {
     const ny = unit.y + dy;
     if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) continue;
     const tile = map[ny][nx];
-    const cost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+    let cost = TILE_MOVEMENT_COST[tile.type] ?? 1;
+    if (unit.type === 'ship') {
+      if (tile.type !== 'water') continue;
+      cost = 1;
+    }
     if (!isFinite(cost) || cost > unit.moves) continue;
     if (units.some((u) => u.x === nx && u.y === ny && u.owner === unit.owner)) continue;
     moves.push({ x: nx, y: ny });
@@ -760,6 +764,15 @@ function drawUnit(unit, x, y) {
       );
       ctx.fill();
       break;
+    case 'ship':
+      ctx.fillStyle = '#000080';
+      ctx.fillRect(x + 4, y + TILE_SIZE / 2 - 4, TILE_SIZE - 8, TILE_SIZE / 4);
+      ctx.strokeStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(x + TILE_SIZE / 2, y + TILE_SIZE / 2 - 8);
+      ctx.lineTo(x + TILE_SIZE / 2, y + 4);
+      ctx.stroke();
+      break;
     case 'barbarian':
       ctx.fillStyle = '#ff0000';
       ctx.fillRect(x + 8, y + 8, TILE_SIZE - 16, TILE_SIZE - 16);
@@ -807,7 +820,7 @@ function updateUI() {
     cityPanel.style.display = 'none';
     if (unit && unit.owner === 'player') {
       foundCityBtn.style.display = unit.type === 'settler' ? 'inline-block' : 'none';
-      const canAttack = ['warrior', 'archer', 'horseman'].includes(unit.type);
+      const canAttack = ['warrior', 'archer', 'horseman', 'ship'].includes(unit.type);
       attackBtn.style.display = canAttack ? 'inline-block' : 'none';
     } else {
       foundCityBtn.style.display = 'none';
