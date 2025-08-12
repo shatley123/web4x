@@ -515,7 +515,7 @@ function draw() {
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
         }
         if (tile.claimedBy) {
-          const colors = { player: '#00bfff', barbarian: '#ff6347', ai: '#228b22' };
+          const colors = { player: '#00bfff', barbarian: '#ff6347', ai: '#9932cc' };
           ctx.strokeStyle = colors[tile.claimedBy] || '#ffffff';
           ctx.lineWidth = 2;
           ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
