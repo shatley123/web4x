@@ -91,10 +91,8 @@ const info = document.getElementById('info');
 const hoverInfo = document.getElementById('hover-info');
 const endTurnBtn = document.getElementById('end-turn');
 const nextUnitBtn = document.getElementById('next-unit');
-const createWarriorBtn = document.getElementById('create-warrior');
-const createArcherBtn = document.getElementById('create-archer');
-const createHorsemanBtn = document.getElementById('create-horseman');
 const foundCityBtn = document.getElementById('found-city');
+const attackBtn = document.getElementById('attack');
 const civsDiv = document.getElementById('civs');
 const cityPanel = document.getElementById('city-panel');
 const buildSelect = document.getElementById('build-select');
@@ -150,10 +148,11 @@ let lastMouseY = 0;
 let revealAI = false;
 
 let audioCtx;
-function playTone(freq, duration) {
+function playTone(freq, duration, volume = 0.1) {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
+  gain.gain.value = volume;
   osc.connect(gain);
   gain.connect(audioCtx.destination);
   osc.frequency.value = freq;
@@ -168,6 +167,28 @@ function playMoveSound() {
 function playAttackSound() {
   playTone(220, 0.2);
 }
+
+let musicStarted = false;
+const melody = [
+  { f: 262, d: 0.4 },
+  { f: 294, d: 0.4 },
+  { f: 330, d: 0.4 },
+  { f: 294, d: 0.4 },
+];
+let musicIndex = 0;
+function playMusic() {
+  const note = melody[musicIndex];
+  if (note.f) playTone(note.f, note.d, 0.05);
+  musicIndex = (musicIndex + 1) % melody.length;
+  setTimeout(playMusic, note.d * 1000);
+}
+function startMusic() {
+  if (!musicStarted) {
+    musicStarted = true;
+    playMusic();
+  }
+}
+document.addEventListener('click', startMusic, { once: true });
 
 function checkWinCondition() {
   const civs = new Set();
@@ -326,15 +347,6 @@ window.addEventListener('keydown', (e) => {
         resetPan();
       }
       break;
-    case 'u': // create warrior
-      units.push(createUnit('warrior', unit.x, unit.y, 'player'));
-      break;
-    case 'a': // create archer
-      units.push(createUnit('archer', unit.x, unit.y, 'player'));
-      break;
-    case 'h': // create horseman
-      units.push(createUnit('horseman', unit.x, unit.y, 'player'));
-      break;
     case 'n':
     case 'Enter':
       advanceTurn();
@@ -360,26 +372,25 @@ nextUnitBtn.addEventListener('click', () => {
   updateUI();
 });
 
-createWarriorBtn.addEventListener('click', () => {
+attackBtn.addEventListener('click', () => {
   const unit = units[selected];
   if (unit && unit.owner === 'player') {
-    units.push(createUnit('warrior', unit.x, unit.y, 'player'));
-    updateUI();
-  }
-});
-
-createArcherBtn.addEventListener('click', () => {
-  const unit = units[selected];
-  if (unit && unit.owner === 'player') {
-    units.push(createUnit('archer', unit.x, unit.y, 'player'));
-    updateUI();
-  }
-});
-
-createHorsemanBtn.addEventListener('click', () => {
-  const unit = units[selected];
-  if (unit && unit.owner === 'player') {
-    units.push(createUnit('horseman', unit.x, unit.y, 'player'));
+    const dirs = [
+      [0, -1],
+      [0, 1],
+      [-1, 0],
+      [1, 0],
+    ];
+    for (const [dx, dy] of dirs) {
+      const target = units.find(
+        (u) => u.x === unit.x + dx && u.y === unit.y + dy && u.owner !== unit.owner
+      );
+      if (target) {
+        const res = moveUnit(unit, dx, dy, map, units);
+        handleAction(res);
+        break;
+      }
+    }
     updateUI();
   }
 });
@@ -757,6 +768,8 @@ function updateUI() {
       `Turn ${turn}<br/>City (${selectedCity.owner})<br/>Production: ${selectedCity.production}<br/>Producing: ${selectedCity.build || 'none'}<br/>Buildings: ${selectedCity.buildings.join(', ') || 'none'}`;
     cityPanel.style.display = 'block';
     updateBuildSelect(selectedCity, buildSelect);
+    foundCityBtn.style.display = 'none';
+    attackBtn.style.display = 'none';
   } else {
     const unit = units[selected];
     if (unit) {
@@ -766,6 +779,14 @@ function updateUI() {
       info.innerHTML = `Turn ${turn}`;
     }
     cityPanel.style.display = 'none';
+    if (unit && unit.owner === 'player') {
+      foundCityBtn.style.display = unit.type === 'settler' ? 'inline-block' : 'none';
+      const canAttack = ['warrior', 'archer', 'horseman'].includes(unit.type);
+      attackBtn.style.display = canAttack ? 'inline-block' : 'none';
+    } else {
+      foundCityBtn.style.display = 'none';
+      attackBtn.style.display = 'none';
+    }
   }
   const { population, production } = calculateCivStats();
   civStatsDiv.innerHTML =
