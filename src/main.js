@@ -3,6 +3,7 @@ import { createUnit, moveUnit, TILE_MOVEMENT_COST } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
 import { updateBuildSelect } from './ui.js';
+import { runAI } from './ai.js';
 
 const TILE_SIZE = 32;
 const WORLD_WIDTH = 100;
@@ -121,9 +122,19 @@ function findPlayerStart() {
   return { x: cx, y: cy };
 }
 
+function findAIStart() {
+  while (true) {
+    const x = Math.floor(Math.random() * WORLD_WIDTH);
+    const y = Math.floor(Math.random() * WORLD_HEIGHT);
+    if (TILE_MOVEMENT_COST[map[y][x].type] !== Infinity) return { x, y };
+  }
+}
+
 const start = findPlayerStart();
 const units = [createUnit('settler', start.x, start.y, 'player')];
-const resources = { player: { gold: 0 }, barbarian: { gold: 0 } };
+const aiStart = findAIStart();
+units.push(createUnit('settler', aiStart.x, aiStart.y, 'ai'));
+const resources = { player: { gold: 0 }, barbarian: { gold: 0 }, ai: { gold: 0 } };
 let selected = 0;
 let selectedCity = null;
 let turn = 1;
@@ -154,6 +165,26 @@ function playMoveSound() {
 
 function playAttackSound() {
   playTone(220, 0.2);
+}
+
+function checkWinCondition() {
+  const civs = new Set();
+  for (const row of map) {
+    for (const tile of row) {
+      if (tile.city) civs.add(tile.city.owner);
+    }
+  }
+  if (civs.size === 1) {
+    const winner = civs.values().next().value;
+    if (typeof alert !== 'undefined') alert(`${winner} wins!`);
+  }
+}
+
+function advanceTurn() {
+  runAI(map, units, resources);
+  endTurn(map, units, resources);
+  turn++;
+  checkWinCondition();
 }
 
 // spawn a few barbarian enemies
@@ -261,8 +292,7 @@ window.addEventListener('keydown', (e) => {
   }
   if (selectedCity) {
     if (key === 'n' || e.key === 'Enter') {
-      endTurn(map, units, resources);
-      turn++;
+      advanceTurn();
     } else if (e.key === 'Tab') {
       nextPlayerUnit();
       e.preventDefault();
@@ -305,8 +335,7 @@ window.addEventListener('keydown', (e) => {
       break;
     case 'n':
     case 'Enter':
-      endTurn(map, units, resources);
-      turn++;
+      advanceTurn();
       break;
     case 'Tab':
       nextPlayerUnit();
@@ -321,8 +350,7 @@ window.addEventListener('keydown', (e) => {
 });
 
 endTurnBtn.addEventListener('click', () => {
-  endTurn(map, units, resources);
-  turn++;
+  advanceTurn();
 });
 
 nextUnitBtn.addEventListener('click', () => {
@@ -487,7 +515,7 @@ function draw() {
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
         }
         if (tile.claimedBy) {
-          const colors = { player: '#00bfff', barbarian: '#ff6347' };
+          const colors = { player: '#00bfff', barbarian: '#ff6347', ai: '#228b22' };
           ctx.strokeStyle = colors[tile.claimedBy] || '#ffffff';
           ctx.lineWidth = 2;
           ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
@@ -577,7 +605,7 @@ function drawCity(city, x, y) {
   ctx.fillRect(x + 8, y + 8, TILE_SIZE / 2 - 10, TILE_SIZE / 2 - 10);
   ctx.fillRect(x + TILE_SIZE / 2, y + 8, TILE_SIZE / 2 - 10, TILE_SIZE / 2 - 10);
   ctx.fillRect(x + 8, y + TILE_SIZE / 2, TILE_SIZE - 16, TILE_SIZE / 2 - 10);
-  const colors = { player: '#00bfff', barbarian: '#ff6347' };
+  const colors = { player: '#00bfff', barbarian: '#ff6347', ai: '#228b22' };
   ctx.strokeStyle = colors[city.owner] || '#000000';
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 6, y + 6, TILE_SIZE - 12, TILE_SIZE - 12);

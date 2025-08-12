@@ -1,5 +1,7 @@
 import { createUnit } from './unit.js';
 
+export const MAX_POPULATION = 10;
+
 export function createCity(owner) {
   return {
     owner,
@@ -23,7 +25,9 @@ export const BUILDING_COSTS = {
 };
 
 export function processCity(city, x, y, map, units, resources) {
-  city.population += 1;
+  if (city.population < MAX_POPULATION) {
+    city.population += 1;
+  }
   const radius = Math.floor(Math.sqrt(city.population));
   for (let dy = -radius; dy <= radius; dy++) {
     for (let dx = -radius; dx <= radius; dx++) {
