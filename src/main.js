@@ -94,11 +94,11 @@ const createWarriorBtn = document.getElementById('create-warrior');
 const createArcherBtn = document.getElementById('create-archer');
 const createHorsemanBtn = document.getElementById('create-horseman');
 const foundCityBtn = document.getElementById('found-city');
-const resourcesDiv = document.getElementById('resources');
 const civsDiv = document.getElementById('civs');
 const cityPanel = document.getElementById('city-panel');
 const buildSelect = document.getElementById('build-select');
 const setBuildBtn = document.getElementById('set-build');
+const civStatsDiv = document.getElementById('civ-stats');
 
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 
@@ -123,7 +123,7 @@ function findPlayerStart() {
 
 const start = findPlayerStart();
 const units = [createUnit('settler', start.x, start.y, 'player')];
-const resources = { player: {}, barbarian: {} };
+const resources = { player: { gold: 0 }, barbarian: { gold: 0 } };
 let selected = 0;
 let selectedCity = null;
 let turn = 1;
@@ -677,8 +677,23 @@ function drawUnit(unit, x, y) {
 
 function formatResources(obj) {
   return Object.entries(obj)
+    .filter(([k]) => k !== 'gold')
     .map(([k, v]) => `${k}:${v}`)
     .join(' ') || 'none';
+}
+
+function calculateCivStats() {
+  let population = 0;
+  let production = 0;
+  for (const row of map) {
+    for (const tile of row) {
+      if (tile.city && tile.city.owner === 'player') {
+        population += tile.city.population || 0;
+        production += tile.city.production || 0;
+      }
+    }
+  }
+  return { population, production };
 }
 
 function updateUI() {
@@ -697,7 +712,9 @@ function updateUI() {
     }
     cityPanel.style.display = 'none';
   }
-  resourcesDiv.textContent = 'Resources: ' + formatResources(resources.player);
+  const { population, production } = calculateCivStats();
+  civStatsDiv.innerHTML =
+    `Population: ${population}<br/>Production: ${production}<br/>Gold: ${resources.player.gold}<br/>Resources: ${formatResources(resources.player)}`;
   const civs = new Set();
   for (const u of units) civs.add(u.owner);
   for (const row of map) {

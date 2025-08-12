@@ -18,6 +18,8 @@ const resources = { player: {}, barbarian: {} };
 endTurn(map, units, resources);
 assert.strictEqual(units[0].moves, 2, 'unit moves reset on end turn');
 assert.strictEqual(resources.player.wheat, 1, 'resource claimed');
+assert.strictEqual(map[1][1].city.population, 2, 'city population grows');
+assert.strictEqual(resources.player.gold, 2, 'gold generated');
 
 // advance production to spawn a warrior
 for (let i = 0; i < 2; i++) endTurn(map, units, resources);
@@ -42,5 +44,20 @@ assert.ok(
 city.build = 'granary';
 for (let i = 0; i < 6; i++) endTurn(map, units, resources);
 assert.ok(city.buildings.includes('granary'), 'city constructed granary');
+
+// expansion based on population
+const map2 = [];
+for (let y = 0; y < 5; y++) {
+  const row = [];
+  for (let x = 0; x < 5; x++) {
+    row.push({ type: 'grass', resource: null, city: null, seen: false, visible: false, claimedBy: null });
+  }
+  map2.push(row);
+}
+map2[2][2].city = createCity('player');
+map2[2][4].resource = 'iron';
+const resources2 = { player: {}, barbarian: {} };
+for (let i = 0; i < 3; i++) endTurn(map2, [], resources2);
+assert.strictEqual(resources2.player.iron, 1, 'distant resource claimed after growth');
 
 console.log('Game loop tests passed');

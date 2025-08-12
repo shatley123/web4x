@@ -1,7 +1,13 @@
 import { createUnit } from './unit.js';
 
 export function createCity(owner) {
-  return { owner, production: 0, build: 'warrior', buildings: [] };
+  return {
+    owner,
+    production: 0,
+    build: 'warrior',
+    buildings: [],
+    population: 1,
+  };
 }
 
 export const UNIT_COSTS = {
@@ -17,7 +23,8 @@ export const BUILDING_COSTS = {
 };
 
 export function processCity(city, x, y, map, units, resources) {
-  const radius = 1;
+  city.population += 1;
+  const radius = Math.floor(Math.sqrt(city.population));
   for (let dy = -radius; dy <= radius; dy++) {
     for (let dx = -radius; dx <= radius; dx++) {
       const nx = x + dx;
@@ -32,6 +39,10 @@ export function processCity(city, x, y, map, units, resources) {
       }
     }
   }
+
+  if (!resources[city.owner]) resources[city.owner] = {};
+  if (!('gold' in resources[city.owner])) resources[city.owner].gold = 0;
+  resources[city.owner].gold += city.population;
 
   if (!city.build) return;
 
