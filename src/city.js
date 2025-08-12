@@ -1,12 +1,17 @@
 import { createUnit } from './unit.js';
 
 export function createCity(owner) {
-  return { owner, production: 0, build: 'warrior' };
+  return { owner, production: 0, build: 'warrior', buildings: [] };
 }
 
 export const UNIT_COSTS = {
   warrior: 10,
   settler: 20,
+  scout: 15,
+};
+
+export const BUILDING_COSTS = {
+  granary: 30,
 };
 
 export function processCity(city, x, y, map, units, resources) {
@@ -29,11 +34,22 @@ export function processCity(city, x, y, map, units, resources) {
   if (!city.build) return;
 
   city.production += 5;
-  const cost = UNIT_COSTS[city.build];
-  if (city.production >= cost) {
-    if (!units.some(u => u.x === x && u.y === y)) {
-      units.push(createUnit(city.build, x, y, city.owner));
-      city.production -= cost;
+  const unitCost = UNIT_COSTS[city.build];
+  const buildingCost = BUILDING_COSTS[city.build];
+  if (unitCost) {
+    if (city.production >= unitCost) {
+      if (!units.some(u => u.x === x && u.y === y)) {
+        units.push(createUnit(city.build, x, y, city.owner));
+        city.production -= unitCost;
+      }
+    }
+  } else if (buildingCost) {
+    if (city.production >= buildingCost) {
+      if (!city.buildings.includes(city.build)) {
+        city.buildings.push(city.build);
+      }
+      city.production -= buildingCost;
+      city.build = null;
     }
   }
 }

@@ -25,5 +25,22 @@ assert.ok(
   units.some(u => u.x === 1 && u.y === 1 && u.type === 'warrior'),
   'city produced warrior'
 );
+// remove produced warrior to free tile
+const warriorIndex = units.findIndex(u => u.x === 1 && u.y === 1 && u.type === 'warrior');
+units.splice(warriorIndex, 1);
+
+// switch to producing scout
+const city = map[1][1].city;
+city.build = 'scout';
+for (let i = 0; i < 2; i++) endTurn(map, units, resources);
+assert.ok(
+  units.some(u => u.x === 1 && u.y === 1 && u.type === 'scout'),
+  'city produced scout'
+);
+
+// produce a building
+city.build = 'granary';
+for (let i = 0; i < 6; i++) endTurn(map, units, resources);
+assert.ok(city.buildings.includes('granary'), 'city constructed granary');
 
 console.log('Game loop tests passed');
