@@ -3,6 +3,7 @@ import { generateMap } from '../src/map.js';
 import { createUnit } from '../src/unit.js';
 import { createCity, MAX_POPULATION } from '../src/city.js';
 import { endTurn } from '../src/game.js';
+import { setDiplomacy, getDiplomacy, trade } from '../src/diplomacy.js';
 
 const map = generateMap(3, 3);
 for (const row of map) {
@@ -104,5 +105,17 @@ assert.ok(
   !inlandUnits.some((u) => u.type === 'ship'),
   'inland city cannot produce ship'
 );
+
+// diplomacy and trading
+setDiplomacy('player', 'ai', 'peace');
+const tradeResources = { player: { gold: 20 }, ai: { gold: 0 } };
+const didTrade = trade('player', 'ai', 10, tradeResources);
+assert.ok(didTrade, 'trade succeeds at peace');
+assert.strictEqual(tradeResources.player.gold, 10, 'gold deducted from trader');
+assert.strictEqual(tradeResources.ai.gold, 10, 'gold added to partner');
+setDiplomacy('player', 'ai', 'war');
+const failedTrade = trade('player', 'ai', 5, tradeResources);
+assert.ok(!failedTrade, 'trade fails during war');
+assert.strictEqual(getDiplomacy('player', 'ai'), 'war', 'diplomacy state tracked');
 
 console.log('Game loop tests passed');
