@@ -574,8 +574,36 @@ function drawUnit(unit, x, y) {
       ctx.fill();
       break;
     case 'warrior':
-      ctx.fillStyle = '#0000ff';
-      ctx.fillRect(x + 8, y + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+      ctx.fillStyle = '#ccc';
+      ctx.fillRect(x + TILE_SIZE / 2 - 2, y + 4, 4, TILE_SIZE - 12);
+      ctx.fillStyle = '#d4af37';
+      ctx.fillRect(x + TILE_SIZE / 2 - 6, y + TILE_SIZE - 12, 12, 4);
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(x + TILE_SIZE / 2 - 4, y + TILE_SIZE - 8, 8, 4);
+      break;
+    case 'scout':
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(x + TILE_SIZE / 2, y + 4);
+      ctx.quadraticCurveTo(
+        x + TILE_SIZE - 4,
+        y + TILE_SIZE / 2,
+        x + TILE_SIZE / 2,
+        y + TILE_SIZE - 4
+      );
+      ctx.quadraticCurveTo(
+        x + 4,
+        y + TILE_SIZE / 2,
+        x + TILE_SIZE / 2,
+        y + 4
+      );
+      ctx.fill();
+      ctx.strokeStyle = '#dddddd';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(x + TILE_SIZE / 2, y + 4);
+      ctx.lineTo(x + TILE_SIZE / 2, y + TILE_SIZE - 4);
+      ctx.stroke();
       break;
     case 'barbarian':
       ctx.fillStyle = '#ff0000';
@@ -592,9 +620,10 @@ function formatResources(obj) {
 
 function updateUI() {
   if (selectedCity) {
-    info.innerHTML = `Turn ${turn}<br/>City (${selectedCity.owner})<br/>Production: ${selectedCity.production}<br/>Building: ${selectedCity.build}`;
+    info.innerHTML =
+      `Turn ${turn}<br/>City (${selectedCity.owner})<br/>Production: ${selectedCity.production}<br/>Producing: ${selectedCity.build || 'none'}<br/>Buildings: ${selectedCity.buildings.join(', ') || 'none'}`;
     cityPanel.style.display = 'block';
-    buildSelect.value = selectedCity.build || 'warrior';
+    buildSelect.value = selectedCity.build || '';
   } else {
     const unit = units[selected];
     if (unit) {

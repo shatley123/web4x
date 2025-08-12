@@ -34,4 +34,9 @@ assert.strictEqual(moved2, 'move', 'move returns move result');
 assert.strictEqual(units3[0].x, 1, 'unit moved to empty tile');
 assert.strictEqual(units3[0].moves, 1, 'movement cost applied');
 
+// scout properties
+const scout = createUnit('scout', 0, 0, 'player');
+assert.strictEqual(scout.speed, 3, 'scout has increased speed');
+assert.strictEqual(scout.moves, 3, 'scout starts with full moves');
+
 console.log('Unit tests passed');
