@@ -91,6 +91,8 @@ const hoverInfo = document.getElementById('hover-info');
 const endTurnBtn = document.getElementById('end-turn');
 const nextUnitBtn = document.getElementById('next-unit');
 const createWarriorBtn = document.getElementById('create-warrior');
+const createArcherBtn = document.getElementById('create-archer');
+const createHorsemanBtn = document.getElementById('create-horseman');
 const foundCityBtn = document.getElementById('found-city');
 const resourcesDiv = document.getElementById('resources');
 const civsDiv = document.getElementById('civs');
@@ -295,6 +297,12 @@ window.addEventListener('keydown', (e) => {
     case 'u': // create warrior
       units.push(createUnit('warrior', unit.x, unit.y, 'player'));
       break;
+    case 'a': // create archer
+      units.push(createUnit('archer', unit.x, unit.y, 'player'));
+      break;
+    case 'h': // create horseman
+      units.push(createUnit('horseman', unit.x, unit.y, 'player'));
+      break;
     case 'n':
     case 'Enter':
       endTurn(map, units, resources);
@@ -326,6 +334,22 @@ createWarriorBtn.addEventListener('click', () => {
   const unit = units[selected];
   if (unit && unit.owner === 'player') {
     units.push(createUnit('warrior', unit.x, unit.y, 'player'));
+    updateUI();
+  }
+});
+
+createArcherBtn.addEventListener('click', () => {
+  const unit = units[selected];
+  if (unit && unit.owner === 'player') {
+    units.push(createUnit('archer', unit.x, unit.y, 'player'));
+    updateUI();
+  }
+});
+
+createHorsemanBtn.addEventListener('click', () => {
+  const unit = units[selected];
+  if (unit && unit.owner === 'player') {
+    units.push(createUnit('horseman', unit.x, unit.y, 'player'));
     updateUI();
   }
 });
@@ -605,6 +629,44 @@ function drawUnit(unit, x, y) {
       ctx.moveTo(x + TILE_SIZE / 2, y + 4);
       ctx.lineTo(x + TILE_SIZE / 2, y + TILE_SIZE - 4);
       ctx.stroke();
+      break;
+    case 'archer':
+      ctx.strokeStyle = '#8b4513';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(
+        x + TILE_SIZE / 2 - 4,
+        y + TILE_SIZE / 2,
+        TILE_SIZE / 3,
+        -Math.PI / 2,
+        Math.PI / 2
+      );
+      ctx.stroke();
+      ctx.strokeStyle = '#000000';
+      ctx.beginPath();
+      ctx.moveTo(x + TILE_SIZE / 2 - 4, y + TILE_SIZE / 2);
+      ctx.lineTo(x + TILE_SIZE - 6, y + TILE_SIZE / 2);
+      ctx.stroke();
+      break;
+    case 'horseman':
+      ctx.fillStyle = '#8b4513';
+      ctx.fillRect(x + 4, y + TILE_SIZE / 2, TILE_SIZE - 8, TILE_SIZE / 4);
+      ctx.fillRect(
+        x + TILE_SIZE / 2,
+        y + TILE_SIZE / 2 - 8,
+        TILE_SIZE / 2 - 8,
+        TILE_SIZE / 4
+      );
+      ctx.fillStyle = '#000000';
+      ctx.beginPath();
+      ctx.arc(
+        x + TILE_SIZE / 2,
+        y + TILE_SIZE / 2 - 10,
+        TILE_SIZE / 6,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
       break;
     case 'barbarian':
       ctx.fillStyle = '#ff0000';

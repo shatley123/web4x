@@ -8,6 +8,8 @@ export const UNIT_COSTS = {
   warrior: 10,
   settler: 20,
   scout: 15,
+  archer: 15,
+  horseman: 25,
 };
 
 export const BUILDING_COSTS = {
