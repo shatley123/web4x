@@ -133,8 +133,27 @@ window.addEventListener('mouseup', () => {
 });
 
 window.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  switch (key) {
+    case 'w':
+      panY -= 1;
+      e.preventDefault();
+      return;
+    case 's':
+      panY += 1;
+      e.preventDefault();
+      return;
+    case 'a':
+      panX -= 1;
+      e.preventDefault();
+      return;
+    case 'd':
+      panX += 1;
+      e.preventDefault();
+      return;
+  }
   if (selectedCity) {
-    if (e.key === 'n' || e.key === 'Enter') {
+    if (key === 'n' || e.key === 'Enter') {
       endTurn(map, units, resources);
       turn++;
     } else if (e.key === 'Tab') {
