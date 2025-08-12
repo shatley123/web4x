@@ -17,8 +17,9 @@ export function processCity(city, x, y, map, units, resources) {
       const ny = y + dy;
       if (ny < 0 || ny >= map.length || nx < 0 || nx >= map[0].length) continue;
       const tile = map[ny][nx];
-      if (tile.resource && tile.claimedBy !== city.owner) {
-        tile.claimedBy = city.owner;
+      const alreadyOwned = tile.claimedBy === city.owner;
+      tile.claimedBy = city.owner;
+      if (tile.resource && !alreadyOwned) {
         if (!resources[city.owner][tile.resource]) resources[city.owner][tile.resource] = 0;
         resources[city.owner][tile.resource] += 1;
       }
