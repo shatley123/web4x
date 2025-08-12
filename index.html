@@ -21,10 +21,13 @@
     #game-container {
       display: flex;
       margin-top: 10px;
+      align-items: flex-start;
     }
     canvas {
       border: 2px solid #888;
       background: #000;
+      flex: none;
+      image-rendering: pixelated;
     }
     #sidebar {
       margin-left: 20px;
@@ -32,12 +35,18 @@
       backdrop-filter: blur(8px);
       padding: 10px;
       border-radius: 12px;
-      width: 200px;
+      width: 220px;
       color: #000;
     }
     #sidebar h2 {
       margin-top: 0;
       font-size: 18px;
+    }
+    #sidebar p:not(.hint) {
+      background: rgba(255, 255, 255, 0.3);
+      padding: 6px;
+      border-radius: 8px;
+      margin: 6px 0;
     }
     #sidebar button {
       width: 100%;
@@ -59,11 +68,11 @@
   </style>
 </head>
 <body>
-  <h1>Web4X - Minimal 4X Prototype</h1>
+  <h1>Web4X - Minimal 4X Prototype 🚀</h1>
   <div id="game-container">
     <canvas id="game"></canvas>
     <div id="sidebar">
-      <h2>Status</h2>
+      <h2>Status 📊</h2>
       <p id="info"></p>
       <p id="resources"></p>
       <p id="civs"></p>
@@ -72,13 +81,13 @@
           <option value="warrior">Warrior</option>
           <option value="settler">Settler</option>
         </select>
-        <button id="set-build">Set Production</button>
+        <button id="set-build">Set Production ⚒️</button>
       </div>
       <div id="controls">
-        <button id="next-unit">Next Unit (Tab)</button>
-        <button id="create-warrior">Create Warrior (u)</button>
-        <button id="found-city">Found City (c)</button>
-        <button id="end-turn">End Turn (Enter)</button>
+        <button id="next-unit">Next Unit 🔁 (Tab)</button>
+        <button id="create-warrior">Create Warrior ⚔️ (u)</button>
+        <button id="found-city">Found City 🏙️ (c)</button>
+        <button id="end-turn">End Turn ⏭️ (Enter)</button>
       </div>
       <p class="hint">Use arrow keys or click adjacent tiles to move. Right-click and drag or WASD to pan.</p>
     </div>
