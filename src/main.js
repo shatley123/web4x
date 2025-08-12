@@ -2,6 +2,7 @@ import { generateMap } from './map.js';
 import { createUnit, moveUnit, TILE_MOVEMENT_COST } from './unit.js';
 import { createCity } from './city.js';
 import { endTurn } from './game.js';
+import { updateBuildSelect } from './ui.js';
 
 const TILE_SIZE = 32;
 const WORLD_WIDTH = 100;
@@ -623,7 +624,7 @@ function updateUI() {
     info.innerHTML =
       `Turn ${turn}<br/>City (${selectedCity.owner})<br/>Production: ${selectedCity.production}<br/>Producing: ${selectedCity.build || 'none'}<br/>Buildings: ${selectedCity.buildings.join(', ') || 'none'}`;
     cityPanel.style.display = 'block';
-    buildSelect.value = selectedCity.build || '';
+    updateBuildSelect(selectedCity, buildSelect);
   } else {
     const unit = units[selected];
     if (unit) {
