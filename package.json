@@ -4,14 +4,6 @@
   "description": "Simple 4X web game skeleton inspired by Civilization 1",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    "test": "node test/map.test.js"
-=======
     "test": "node test/map.test.js && node test/unit.test.js && node test/game.test.js"
->>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
-=======
-    "test": "node test/map.test.js"
->>>>>>> origin/codex/create-4x-web-game-inspired-by-civilization-1
   }
 }
