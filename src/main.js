@@ -1,4 +1,10 @@
 import { generateMap } from './map.js';
+<<<<<<< HEAD
+=======
+import { createUnit, moveUnit } from './unit.js';
+import { createCity } from './city.js';
+import { endTurn } from './game.js';
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
 
 const TILE_SIZE = 32;
 const WORLD_WIDTH = 100;
@@ -12,6 +18,7 @@ const ctx = canvas.getContext('2d');
 canvas.width = VIEW_WIDTH * TILE_SIZE;
 canvas.height = VIEW_HEIGHT * TILE_SIZE;
 
+<<<<<<< HEAD
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
 const player = { x: Math.floor(WORLD_WIDTH / 2), y: Math.floor(WORLD_HEIGHT / 2) };
 
@@ -33,17 +40,216 @@ window.addEventListener('keydown', (e) => {
       break;
     case 'c': // found city
       map[player.y][player.x].city = true;
+=======
+const info = document.getElementById('info');
+const endTurnBtn = document.getElementById('end-turn');
+const nextUnitBtn = document.getElementById('next-unit');
+const createWarriorBtn = document.getElementById('create-warrior');
+const foundCityBtn = document.getElementById('found-city');
+const resourcesDiv = document.getElementById('resources');
+const civsDiv = document.getElementById('civs');
+const cityPanel = document.getElementById('city-panel');
+const buildSelect = document.getElementById('build-select');
+const setBuildBtn = document.getElementById('set-build');
+
+const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
+const units = [
+  createUnit(
+    'settler',
+    Math.floor(WORLD_WIDTH / 2),
+    Math.floor(WORLD_HEIGHT / 2),
+    'player'
+  )
+];
+const resources = { player: {}, barbarian: {} };
+let selected = 0;
+let selectedCity = null;
+let turn = 1;
+let cameraX = 0;
+let cameraY = 0;
+let shake = 0;
+
+let audioCtx;
+function playTone(freq, duration) {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.value = freq;
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playMoveSound() {
+  playTone(440, 0.1);
+}
+
+function playAttackSound() {
+  playTone(220, 0.2);
+}
+
+// spawn a few barbarian enemies
+for (let i = 0; i < 5; i++) {
+  let x, y;
+  do {
+    x = Math.floor(Math.random() * WORLD_WIDTH);
+    y = Math.floor(Math.random() * WORLD_HEIGHT);
+  } while (map[y][x].type === 'water' || map[y][x].type === 'mountain');
+  units.push(createUnit('barbarian', x, y, 'barbarian'));
+}
+
+canvas.addEventListener('click', (e) => {
+  const rect = canvas.getBoundingClientRect();
+  const tx = Math.floor((e.clientX - rect.left) / TILE_SIZE) + cameraX;
+  const ty = Math.floor((e.clientY - rect.top) / TILE_SIZE) + cameraY;
+  const clicked = units.findIndex(
+    (u) => u.x === tx && u.y === ty && u.owner === 'player'
+  );
+  if (clicked !== -1) {
+    selected = clicked;
+    selectedCity = null;
+  } else if (map[ty][tx].city && map[ty][tx].city.owner === 'player') {
+    selectedCity = map[ty][tx].city;
+    selectedCity.x = tx;
+    selectedCity.y = ty;
+  } else if (!selectedCity) {
+    const unit = units[selected];
+    if (unit && unit.owner === 'player') {
+      const dx = tx - unit.x;
+      const dy = ty - unit.y;
+      if (Math.abs(dx) + Math.abs(dy) === 1) {
+        const res = moveUnit(unit, dx, dy, map, units);
+        handleAction(res);
+      }
+    }
+  }
+});
+
+window.addEventListener('keydown', (e) => {
+  if (selectedCity) {
+    if (e.key === 'n' || e.key === 'Enter') {
+      endTurn(map, units, resources);
+      turn++;
+    } else if (e.key === 'Tab') {
+      nextPlayerUnit();
+      e.preventDefault();
+    }
+    return;
+  }
+  const unit = units[selected];
+  if (!unit || unit.owner !== 'player') return;
+  switch (e.key) {
+    case 'ArrowUp':
+      handleAction(moveUnit(unit, 0, -1, map, units));
+      break;
+    case 'ArrowDown':
+      handleAction(moveUnit(unit, 0, 1, map, units));
+      break;
+    case 'ArrowLeft':
+      handleAction(moveUnit(unit, -1, 0, map, units));
+      break;
+    case 'ArrowRight':
+      handleAction(moveUnit(unit, 1, 0, map, units));
+      break;
+    case 'c': // found city
+      if (unit.type === 'settler') {
+        map[unit.y][unit.x].city = createCity(unit.owner);
+        units.splice(selected, 1);
+        const defender = createUnit('warrior', unit.x, unit.y, unit.owner);
+        units.push(defender);
+        selected = units.findIndex((u) => u.owner === 'player');
+      }
+      break;
+    case 'u': // create warrior
+      units.push(createUnit('warrior', unit.x, unit.y, 'player'));
+      break;
+    case 'n':
+    case 'Enter':
+      endTurn(map, units, resources);
+      turn++;
+      break;
+    case 'Tab':
+      nextPlayerUnit();
+      e.preventDefault();
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
       break;
     default:
       return;
   }
+<<<<<<< HEAD
   draw();
 });
 
+=======
+  if (selected >= units.length || units[selected].owner !== 'player') {
+    nextPlayerUnit();
+  }
+});
+
+endTurnBtn.addEventListener('click', () => {
+  endTurn(map, units, resources);
+  turn++;
+});
+
+nextUnitBtn.addEventListener('click', () => {
+  nextPlayerUnit();
+  updateUI();
+});
+
+createWarriorBtn.addEventListener('click', () => {
+  const unit = units[selected];
+  if (unit && unit.owner === 'player') {
+    units.push(createUnit('warrior', unit.x, unit.y, 'player'));
+    updateUI();
+  }
+});
+
+foundCityBtn.addEventListener('click', () => {
+  const unit = units[selected];
+  if (unit && unit.owner === 'player' && unit.type === 'settler') {
+    map[unit.y][unit.x].city = createCity(unit.owner);
+    units.splice(selected, 1);
+    const defender = createUnit('warrior', unit.x, unit.y, unit.owner);
+    units.push(defender);
+    selected = units.findIndex((u) => u.owner === 'player');
+    updateUI();
+  }
+});
+
+setBuildBtn.addEventListener('click', () => {
+  if (selectedCity) {
+    selectedCity.build = buildSelect.value;
+    updateUI();
+  }
+});
+
+function handleAction(res) {
+  if (res === 'move') playMoveSound();
+  else if (res === 'attack') {
+    playAttackSound();
+    shake = 5;
+  }
+}
+
+function nextPlayerUnit() {
+  const indices = units.map((u, i) => i).filter((i) => units[i].owner === 'player');
+  if (indices.length === 0) {
+    selected = -1;
+    return;
+  }
+  const pos = indices.indexOf(selected);
+  const next = indices[(pos + 1) % indices.length];
+  selected = next;
+  selectedCity = null;
+}
+
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   updateVisibility();
 
+<<<<<<< HEAD
   const camX = Math.max(0, Math.min(player.x - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH));
   const camY = Math.max(0, Math.min(player.y - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT));
 
@@ -51,11 +257,47 @@ function draw() {
     for (let x = 0; x < VIEW_WIDTH; x++) {
       const mapX = camX + x;
       const mapY = camY + y;
+=======
+  for (const u of units) {
+    u.fx += (u.x - u.fx) * 0.2;
+    u.fy += (u.y - u.fy) * 0.2;
+  }
+
+  const focus = selectedCity ? { fx: selectedCity.x, fy: selectedCity.y } : units[selected] || { fx: 0, fy: 0 };
+  cameraX = Math.max(
+    0,
+    Math.min(Math.floor(focus.fx) - Math.floor(VIEW_WIDTH / 2), WORLD_WIDTH - VIEW_WIDTH)
+  );
+  cameraY = Math.max(
+    0,
+    Math.min(Math.floor(focus.fy) - Math.floor(VIEW_HEIGHT / 2), WORLD_HEIGHT - VIEW_HEIGHT)
+  );
+
+  let offsetX = 0;
+  let offsetY = 0;
+  if (shake > 0) {
+    offsetX = (Math.random() * 2 - 1) * shake;
+    offsetY = (Math.random() * 2 - 1) * shake;
+    shake *= 0.9;
+  }
+
+  ctx.save();
+  ctx.translate(offsetX, offsetY);
+
+  for (let y = 0; y < VIEW_HEIGHT; y++) {
+    for (let x = 0; x < VIEW_WIDTH; x++) {
+      const mapX = cameraX + x;
+      const mapY = cameraY + y;
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
       const tile = map[mapY][mapX];
       const posX = x * TILE_SIZE;
       const posY = y * TILE_SIZE;
       if (tile.seen) {
         drawTile(tile.type, posX, posY);
+<<<<<<< HEAD
+=======
+        if (tile.resource) drawResource(tile.resource, posX, posY);
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
         if (!tile.visible) {
           ctx.fillStyle = 'rgba(0,0,0,0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
@@ -63,9 +305,12 @@ function draw() {
         if (tile.city) {
           ctx.fillStyle = '#ff0000';
           ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+<<<<<<< HEAD
           ctx.strokeStyle = '#ffff00';
           ctx.lineWidth = 2;
           ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+=======
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
         }
       } else {
         ctx.fillStyle = '#000000';
@@ -74,6 +319,7 @@ function draw() {
     }
   }
 
+<<<<<<< HEAD
   highlightMoves(camX, camY);
 
   // draw player relative to camera
@@ -87,6 +333,24 @@ function draw() {
     Math.PI * 2
   );
   ctx.fill();
+=======
+  for (const u of units) {
+    const tile = map[u.y][u.x];
+    if (!tile.visible) continue;
+    const posX = (u.fx - cameraX) * TILE_SIZE;
+    const posY = (u.fy - cameraY) * TILE_SIZE;
+    drawUnit(u, posX, posY);
+    if (!selectedCity && u === units[selected]) {
+      ctx.strokeStyle = '#ffffff';
+      ctx.strokeRect(posX + 2, posY + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+    }
+  }
+
+  ctx.restore();
+
+  updateUI();
+  requestAnimationFrame(draw);
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
 }
 
 function updateVisibility() {
@@ -95,6 +359,7 @@ function updateVisibility() {
       tile.visible = false;
     }
   }
+<<<<<<< HEAD
   for (let dy = -VISION_RADIUS; dy <= VISION_RADIUS; dy++) {
     for (let dx = -VISION_RADIUS; dx <= VISION_RADIUS; dx++) {
       const nx = player.x + dx;
@@ -124,6 +389,18 @@ function highlightMoves(camX, camY) {
       const screenY = (ny - camY) * TILE_SIZE;
       if (screenX >= 0 && screenX < canvas.width && screenY >= 0 && screenY < canvas.height) {
         ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+=======
+  for (const u of units) {
+    for (let dy = -VISION_RADIUS; dy <= VISION_RADIUS; dy++) {
+      for (let dx = -VISION_RADIUS; dx <= VISION_RADIUS; dx++) {
+        const nx = u.x + dx;
+        const ny = u.y + dy;
+        if (nx >= 0 && nx < WORLD_WIDTH && ny >= 0 && ny < WORLD_HEIGHT) {
+          const tile = map[ny][nx];
+          tile.visible = true;
+          tile.seen = true;
+        }
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
       }
     }
   }
@@ -198,3 +475,85 @@ function drawTile(type, x, y) {
       ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
   }
 }
+<<<<<<< HEAD
+=======
+
+function drawResource(res, x, y) {
+  switch (res) {
+    case 'wheat':
+      ctx.fillStyle = '#fff200';
+      ctx.beginPath();
+      ctx.arc(x + TILE_SIZE / 2, y + TILE_SIZE / 2, TILE_SIZE / 6, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    case 'iron':
+      ctx.fillStyle = '#555555';
+      ctx.fillRect(
+        x + TILE_SIZE / 3,
+        y + TILE_SIZE / 3,
+        TILE_SIZE / 3,
+        TILE_SIZE / 3
+      );
+      break;
+  }
+}
+
+function drawUnit(unit, x, y) {
+  switch (unit.type) {
+    case 'settler':
+      ctx.fillStyle = '#ffff00';
+      ctx.beginPath();
+      ctx.arc(
+        x + TILE_SIZE / 2,
+        y + TILE_SIZE / 2,
+        TILE_SIZE / 3,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+      break;
+    case 'warrior':
+      ctx.fillStyle = '#0000ff';
+      ctx.fillRect(x + 8, y + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+      break;
+    case 'barbarian':
+      ctx.fillStyle = '#ff0000';
+      ctx.fillRect(x + 8, y + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+      break;
+  }
+}
+
+function formatResources(obj) {
+  return Object.entries(obj)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(' ') || 'none';
+}
+
+function updateUI() {
+  if (selectedCity) {
+    info.innerHTML = `Turn ${turn}<br/>City (${selectedCity.owner})<br/>Production: ${selectedCity.production}<br/>Building: ${selectedCity.build}`;
+    cityPanel.style.display = 'block';
+    buildSelect.value = selectedCity.build || 'warrior';
+  } else {
+    const unit = units[selected];
+    if (unit) {
+      const tile = map[unit.y][unit.x];
+      info.innerHTML = `Turn ${turn}<br/>Selected: ${unit.type} (${unit.owner})<br/>Moves: ${unit.moves}<br/>Tile: ${tile.type}`;
+    } else {
+      info.innerHTML = `Turn ${turn}`;
+    }
+    cityPanel.style.display = 'none';
+  }
+  resourcesDiv.textContent = 'Resources: ' + formatResources(resources.player);
+  const civs = new Set();
+  for (const u of units) civs.add(u.owner);
+  for (const row of map) {
+    for (const tile of row) {
+      if (tile.city) civs.add(tile.city.owner);
+    }
+  }
+  civsDiv.textContent = 'Civs: ' + Array.from(civs).join(', ');
+}
+
+requestAnimationFrame(draw);
+>>>>>>> origin/20nj2x-codex/create-4x-web-game-inspired-by-civilization-1
