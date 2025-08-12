@@ -521,8 +521,12 @@ function draw() {
         drawTile(tile.type, posX, posY);
         const key = `${mapX},${mapY}`;
         if (moveSet.has(key) && tile.visible) {
-          ctx.fillStyle = 'rgba(0, 150, 255, 0.35)';
+          ctx.fillStyle = 'rgba(0, 150, 255, 0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
+          ctx.strokeStyle = 'rgba(0, 150, 255, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+          ctx.lineWidth = 1;
         }
         if (tile.resource) drawResource(tile.resource, posX, posY);
         if (tile.city) {
@@ -536,7 +540,29 @@ function draw() {
           const colors = { player: '#00bfff', barbarian: '#ff6347', ai: '#9932cc' };
           ctx.strokeStyle = colors[tile.claimedBy] || '#ffffff';
           ctx.lineWidth = 2;
-          ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+          const owner = tile.claimedBy;
+          const edges = [
+            { dx: 0, dy: -1, x1: posX + 1, y1: posY + 1, x2: posX + TILE_SIZE - 1, y2: posY + 1 }, // top
+            { dx: 1, dy: 0, x1: posX + TILE_SIZE - 1, y1: posY + 1, x2: posX + TILE_SIZE - 1, y2: posY + TILE_SIZE - 1 }, // right
+            { dx: 0, dy: 1, x1: posX + 1, y1: posY + TILE_SIZE - 1, x2: posX + TILE_SIZE - 1, y2: posY + TILE_SIZE - 1 }, // bottom
+            { dx: -1, dy: 0, x1: posX + 1, y1: posY + 1, x2: posX + 1, y2: posY + TILE_SIZE - 1 }, // left
+          ];
+          for (const e of edges) {
+            const nx = mapX + e.dx;
+            const ny = mapY + e.dy;
+            if (
+              nx < 0 ||
+              nx >= WORLD_WIDTH ||
+              ny < 0 ||
+              ny >= WORLD_HEIGHT ||
+              map[ny][nx].claimedBy !== owner
+            ) {
+              ctx.beginPath();
+              ctx.moveTo(e.x1, e.y1);
+              ctx.lineTo(e.x2, e.y2);
+              ctx.stroke();
+            }
+          }
           ctx.lineWidth = 1;
         }
       } else {
