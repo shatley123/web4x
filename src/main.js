@@ -98,14 +98,28 @@ const buildSelect = document.getElementById('build-select');
 const setBuildBtn = document.getElementById('set-build');
 
 const map = generateMap(WORLD_WIDTH, WORLD_HEIGHT);
-const units = [
-  createUnit(
-    'settler',
-    Math.floor(WORLD_WIDTH / 2),
-    Math.floor(WORLD_HEIGHT / 2),
-    'player'
-  )
-];
+
+function findPlayerStart() {
+  const cx = Math.floor(WORLD_WIDTH / 2);
+  const cy = Math.floor(WORLD_HEIGHT / 2);
+  const max = Math.max(WORLD_WIDTH, WORLD_HEIGHT);
+  for (let r = 0; r < max; r++) {
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const nx = cx + dx;
+        const ny = cy + dy;
+        if (nx < 0 || ny < 0 || nx >= WORLD_WIDTH || ny >= WORLD_HEIGHT)
+          continue;
+        const type = map[ny][nx].type;
+        if (TILE_MOVEMENT_COST[type] !== Infinity) return { x: nx, y: ny };
+      }
+    }
+  }
+  return { x: cx, y: cy };
+}
+
+const start = findPlayerStart();
+const units = [createUnit('settler', start.x, start.y, 'player')];
 const resources = { player: {}, barbarian: {} };
 let selected = 0;
 let selectedCity = null;
@@ -436,20 +450,19 @@ function draw() {
         drawTile(tile.type, posX, posY);
         const key = `${mapX},${mapY}`;
         if (moveSet.has(key) && tile.visible) {
-          ctx.fillStyle = 'rgba(255,255,0,0.3)';
+          ctx.fillStyle = 'rgba(0, 150, 255, 0.35)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
         }
         if (tile.resource) drawResource(tile.resource, posX, posY);
         if (tile.city) {
-          ctx.fillStyle = '#ff0000';
-          ctx.fillRect(posX + 8, posY + 8, TILE_SIZE - 16, TILE_SIZE - 16);
+          drawCity(tile.city, posX, posY);
         }
         if (!tile.visible) {
           ctx.fillStyle = 'rgba(0,0,0,0.5)';
           ctx.fillRect(posX, posY, TILE_SIZE, TILE_SIZE);
         }
         if (tile.claimedBy) {
-          const colors = { player: '#ffff00', barbarian: '#ff0000' };
+          const colors = { player: '#00bfff', barbarian: '#ff6347' };
           ctx.strokeStyle = colors[tile.claimedBy] || '#ffffff';
           ctx.lineWidth = 2;
           ctx.strokeRect(posX + 1, posY + 1, TILE_SIZE - 2, TILE_SIZE - 2);
@@ -530,6 +543,20 @@ function drawResource(res, x, y) {
       );
       break;
   }
+}
+
+function drawCity(city, x, y) {
+  ctx.fillStyle = '#d3d3d3';
+  ctx.fillRect(x + 6, y + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+  ctx.fillStyle = '#808080';
+  ctx.fillRect(x + 8, y + 8, TILE_SIZE / 2 - 10, TILE_SIZE / 2 - 10);
+  ctx.fillRect(x + TILE_SIZE / 2, y + 8, TILE_SIZE / 2 - 10, TILE_SIZE / 2 - 10);
+  ctx.fillRect(x + 8, y + TILE_SIZE / 2, TILE_SIZE - 16, TILE_SIZE / 2 - 10);
+  const colors = { player: '#00bfff', barbarian: '#ff6347' };
+  ctx.strokeStyle = colors[city.owner] || '#000000';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x + 6, y + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+  ctx.lineWidth = 1;
 }
 
 function drawUnit(unit, x, y) {
