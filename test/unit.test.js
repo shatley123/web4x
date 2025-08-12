@@ -14,10 +14,21 @@ const units = [
 // combat: warrior vs barbarian
 const res = moveUnit(units[0], 1, 0, map, units);
 assert.strictEqual(res, 'attack', 'combat returns attack result');
-assert.strictEqual(units.length, 1, 'defender removed after combat');
-assert.strictEqual(units[0].x, 1, 'warrior moved into tile');
-assert.strictEqual(units[0].moves, 1, 'movement consumed');
-assert.strictEqual(units[0].type, 'warrior', 'warrior survives');
+assert.strictEqual(units.length, 2, 'both units survive initial combat');
+assert.strictEqual(units[0].x, 0, 'warrior stays in place when defender survives');
+assert.strictEqual(units[0].health, 9, 'warrior takes damage');
+assert.strictEqual(units[1].health, 8, 'barbarian takes damage');
+assert.strictEqual(units[0].moves, 0, 'movement consumed on attack');
+
+// continue combat until defender defeated
+while (units.length > 1) {
+  units[0].moves = units[0].speed;
+  moveUnit(units[0], 1, 0, map, units);
+}
+assert.strictEqual(units.length, 1, 'defender removed after repeated combat');
+assert.strictEqual(units[0].x, 1, 'warrior moved into tile after victory');
+assert.strictEqual(units[0].health, 5, 'warrior health reduced appropriately');
+assert.strictEqual(units[0].moves, 1, 'movement cost applied after moving into tile');
 
 // movement blocked by water
 const map2 = [[{ type: 'grass' }, { type: 'water' }]];
@@ -43,9 +54,11 @@ assert.strictEqual(scout.moves, 3, 'scout starts with full moves');
 const archer = createUnit('archer', 0, 0, 'player');
 assert.strictEqual(archer.speed, 2, 'archer has expected speed');
 assert.strictEqual(archer.moves, 2, 'archer starts with full moves');
+assert.strictEqual(archer.health, 10, 'archer starts with full health');
 
 const horseman = createUnit('horseman', 0, 0, 'player');
 assert.strictEqual(horseman.speed, 4, 'horseman has increased speed');
 assert.strictEqual(horseman.moves, 4, 'horseman starts with full moves');
+assert.strictEqual(horseman.health, 10, 'horseman starts with full health');
 
 console.log('Unit tests passed');
